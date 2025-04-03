@@ -14,6 +14,12 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
   DateTime? selectedDate;
 
   @override
+  void initState() {
+    super.initState();
+    examController. fetchLabExternal(); // ✅ Fetch allotments on page load
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -23,7 +29,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
             icon: Icon(Icons.calendar_today),
             onPressed: () async {
               DateTime now = DateTime.now();
-              DateTime firstDate = DateTime(2025);
+              DateTime firstDate = DateTime(2023);
               DateTime lastDate = DateTime(2025, 12, 31);
 
               DateTime? picked = await showDatePicker(
@@ -32,7 +38,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
                     ? selectedDate!
                     : now.isAfter(lastDate)
                         ? lastDate
-                        : now,  // Ensures initialDate is within range
+                        : now,
                 firstDate: firstDate,
                 lastDate: lastDate,
               );
@@ -46,42 +52,48 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
           ),
         ],
       ),
-      body: Center(
-        child: Obx(() {
-          if (examController.apiData.isEmpty) {
-            return Center(child: Text('No allotments available'));
-          }
+      body: Obx(() {
+        if (examController.apiData.isEmpty) {
+          return Center(child: Text('No allotments available'));
+        }
 
-          List<Labexternal> sortedAllotments = _extractAndSortAllotments(examController.apiData);
-          List<Labexternal> filteredAllotments = _filterAllotmentsByDate(sortedAllotments);
+        List<Labexternal> sortedAllotments = _extractAndSortAllotments(examController.apiData);
+        List<Labexternal> filteredAllotments = _filterAllotmentsByDate(sortedAllotments);
 
-          if (filteredAllotments.isEmpty) {
-            return Center(child: Text('No allotments available for the selected date'));
-          }
+        if (filteredAllotments.isEmpty) {
+          return Center(child: Text('No allotments available for the selected date'));
+        }
 
-          return ListView.builder(
-            itemCount: filteredAllotments.length,
-            itemBuilder: (context, index) {
-              final allotment = filteredAllotments[index];
-              return Card(
-                margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                child: ListTile(
-                  contentPadding: EdgeInsets.all(16.0),
-                  title: Text('Date: ${allotment.startDate}'),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Class: ${allotment.className}'),
-                      Text('Subject: ${allotment.subjectName}'),
-                      Text('Hours: ${allotment.hoursAllotted}'),
-                    ],
-                  ),
+        return ListView.builder(
+          itemCount: filteredAllotments.length,
+          itemBuilder: (context, index) {
+            final allotment = filteredAllotments[index];
+            return Card(
+              margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+              child: ListTile(
+                contentPadding: EdgeInsets.all(16.0),
+                title: Text('Date: ${allotment.startDate}'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Lab: ${allotment.labName}'),
+                    Text('Class: ${allotment.className}'),
+                    Text('Subject: ${allotment.subjectName}'),
+                    Text('Hours: ${allotment.hoursAllotted}'),
+                  ],
                 ),
-              );
-            },
-          );
-        }),
-      ),
+                trailing: IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () {
+                    print("Delete button clicked for ID: ${allotment.id}");
+                    _showDeleteConfirmationDialog(allotment.id);
+                  },
+                ),
+              ),
+            );
+          },
+        );
+      }),
     );
   }
 
@@ -102,7 +114,22 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
     if (selectedDate == null) return allotments;
     return allotments.where((allotment) {
       DateTime allotmentDate = DateFormat('dd-MM-yyyy').parse(allotment.startDate);
-      return allotmentDate == selectedDate;
+      return allotmentDate.isAtSameMomentAs(selectedDate!);
     }).toList();
+  }
+
+  void _showDeleteConfirmationDialog(int id) {
+    Get.defaultDialog(
+      title: "Delete Allotment",
+      middleText: "Are you sure you want to delete this allotment?",
+      textConfirm: "Yes",
+      textCancel: "No",
+      confirmTextColor: Colors.white,
+      buttonColor: Colors.red,
+      onConfirm: () {
+        examController.deleteAllotment(id);
+        Get.back(); // Close dialog
+      },
+    );
   }
 }

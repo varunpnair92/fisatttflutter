@@ -18,7 +18,7 @@ class LabAllotmentPage extends StatelessWidget {
           Obx(() {
             return TableCalendar(
               firstDay: DateTime.utc(2025, 1, 1),
-              lastDay: DateTime.utc(2025, 12, 31),
+              lastDay: DateTime.utc(2095, 12, 31),
               focusedDay: labController.selectedDate.value,
               calendarFormat: labController.calendarFormat.value,
               selectedDayPredicate: (day) {
@@ -46,7 +46,7 @@ class LabAllotmentPage extends StatelessWidget {
   }
 
   Widget _buildAllotmentTable(DateTime selectedDate) {
-    final labs = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'MP LAB', 'PG LAB'];
+    final labs = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'MP', 'PG'];
     final hours = ['H1', 'H2', 'H3', 'H4', 'LB', 'H5', 'H6', 'H7'];
 
     // Convert selectedDate to a day string
@@ -78,7 +78,7 @@ class LabAllotmentPage extends StatelessWidget {
                       decoration: BoxDecoration(
                         border: Border.all(),
                       ),
-                      child: Text('Lab/Hours'),
+                      child: Text('L'),
                     ),
                     ...hours.map((hour) => Container(
                       alignment: Alignment.center,

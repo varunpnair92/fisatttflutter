@@ -1,5 +1,4 @@
 import 'package:fisat_timetable/api_controller.dart';
-import 'package:fisat_timetable/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -14,22 +13,21 @@ class ShowAllotmentPage extends StatefulWidget {
 
 class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
   final examController = Get.put(ExamController());
-  DateTime? selectedDate = DateTime.now(); // ✅ Default to today's date
+  DateTime? selectedDate = DateTime.now();
   bool isCheckBoxChecked = false;
   List<dynamic> freeLabSlots = [];
 
   @override
   void initState() {
     super.initState();
-     selectedDate = DateTime.now();
-    examController.fetchLabExternal(); // ✅ Fetch normal allotments on load
+    examController.fetchLabExternal(); // Fetch allotments on page load
   }
 
   Future<void> fetchFreeLabSlots() async {
     if (selectedDate == null) return;
 
     String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate!);
-    String apiUrl = '${Sharedvariable().ip}/lab/labdata_free';
+    String apiUrl = 'http://172.16.111.111:9999/lab/labdata_free';
 
     try {
       final response = await http.post(
@@ -59,18 +57,11 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
           IconButton(
             icon: Icon(Icons.calendar_today),
             onPressed: () async {
-              DateTime now = DateTime.now();
-              DateTime firstDate = DateTime(2025);
-              DateTime lastDate = DateTime(2025, 12, 31);
               DateTime? picked = await showDatePicker(
                 context: context,
-                initialDate: (selectedDate != null && selectedDate!.isBefore(lastDate))
-                    ? selectedDate!
-                    : now.isAfter(lastDate)
-                        ? lastDate
-                        : now,
-                firstDate: firstDate,
-                lastDate: lastDate,
+                initialDate: selectedDate ?? DateTime.now(),
+                firstDate: DateTime(2023),
+                lastDate: DateTime(2025, 12, 31),
               );
 
               if (picked != null && mounted) {
@@ -104,8 +95,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
           ),
         ],
       ),
-      body:
-          isCheckBoxChecked ? _buildFreeLabSlotsView() : _buildAllotmentsView(),
+      body: isCheckBoxChecked ? _buildFreeLabSlotsView() : _buildAllotmentsView(),
     );
   }
 
@@ -135,14 +125,11 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
         return Center(child: Text('No allotments available'));
       }
 
-      List<Labexternal> sortedAllotments =
-          _extractAndSortAllotments(examController.apiData);
-      List<Labexternal> filteredAllotments =
-          _filterAllotmentsByDate(sortedAllotments);
+      List<Labexternal> sortedAllotments = _extractAndSortAllotments(examController.apiData);
+      List<Labexternal> filteredAllotments = _filterAllotmentsByDate(sortedAllotments);
 
       if (filteredAllotments.isEmpty) {
-        return Center(
-            child: Text('No allotments available for the selected date'));
+        return Center(child: Text('No allotments available for the selected date'));
       }
 
       return ListView.builder(
@@ -193,8 +180,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
   List<Labexternal> _filterAllotmentsByDate(List<Labexternal> allotments) {
     if (selectedDate == null) return allotments;
     return allotments.where((allotment) {
-      DateTime allotmentDate =
-          DateFormat('dd-MM-yyyy').parse(allotment.startDate);
+      DateTime allotmentDate = DateFormat('dd-MM-yyyy').parse(allotment.startDate);
       return allotmentDate.isAtSameMomentAs(selectedDate!);
     }).toList();
   }
