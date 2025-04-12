@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "967714456718",
+    "project_id": "fisattimetablefirebase",
+    "storage_bucket": "fisattimetablefirebase.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:967714456718:android:1a2f43536d6b19bc5ab5df",
+        "android_client_info": {
+          "package_name": "com.example.fisat_timetable"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "967714456718-q3uempm4s2l90iclaqflnu9efl6r1720.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRhjSUtUg3POkZ6HR-NN8HN9Ecxod3JH4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "967714456718-q3uempm4s2l90iclaqflnu9efl6r1720.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
