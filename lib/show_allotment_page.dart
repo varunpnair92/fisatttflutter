@@ -193,10 +193,11 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
   List<Labexternal> _filterAllotmentsByDate(List<Labexternal> allotments) {
     if (selectedDate == null) return allotments;
     return allotments.where((allotment) {
-      DateTime allotmentDate =
-          DateFormat('dd-MM-yyyy').parse(allotment.startDate);
-      return allotmentDate.isAtSameMomentAs(selectedDate!);
-    }).toList();
+  DateTime start = DateFormat('dd-MM-yyyy').parse(allotment.startDate);
+  DateTime end = DateFormat('dd-MM-yyyy').parse(allotment.endDate);
+  return selectedDate!.isAfter(start.subtract(Duration(days: 1))) &&
+         selectedDate!.isBefore(end.add(Duration(days: 1)));
+}).toList();
   }
 
   void _showDeleteConfirmationDialog(int id) {
