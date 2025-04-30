@@ -1,5 +1,5 @@
+import 'package:fisat_timetable/show_allotment_page_u.dart';
 import 'package:flutter/material.dart';
-import 'show_allotment_page.dart';
 
 class AllotmentPageU extends StatelessWidget {
   @override
@@ -19,7 +19,7 @@ class AllotmentPageU extends StatelessWidget {
         body: TabBarView(
           children: [
            // SaveAllotmentPage(),
-            ShowAllotmentPage(),
+            ShowAllotmentPageU(),
           ],
         ),
       ),

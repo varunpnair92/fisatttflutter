@@ -103,6 +103,7 @@ class LabController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Allotment successfully saved
         Get.snackbar("Saved", "Allotment Saved");
+        getLabExternal();
       } else if (response.statusCode == 400) {
         // Conflict detected, show dialog with the conflict message
         final responseBody = jsonDecode(response.body);
@@ -137,6 +138,7 @@ class LabController extends GetxController {
 
               if (continueResponse.statusCode == 200 ||
                   continueResponse.statusCode == 201) {
+                getLabExternal();
                 Get.snackbar("Saved", "Allotment Saved with Conflict");
               } else {
                 Get.snackbar("Error", "Failed to save data with conflict.");
@@ -152,6 +154,7 @@ class LabController extends GetxController {
     } catch (e) {
       Get.snackbar("Error", "Exception while saving data: $e");
     }
+    update();
   }
 
   Future<List<Labexternal>?> getLabExternal() async {
@@ -197,11 +200,11 @@ class LabController extends GetxController {
               )),
         );
       } else {
-       // print("Error: ${response.statusCode}");
-       // print("Response body: ${response.body}");
+        // print("Error: ${response.statusCode}");
+        // print("Response body: ${response.body}");
       }
     } catch (e) {
-     // print("Exception: $e");
+      // print("Exception: $e");
     }
   }
 }
