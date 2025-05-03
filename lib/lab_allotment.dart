@@ -50,7 +50,7 @@ class LabAllotmentPage extends StatelessWidget {
     final hours = ['H1', 'H2', 'H3', 'H4', 'LB', 'H5', 'H6', 'H7'];
 
     // Convert selectedDate to a day string
-    final dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    final dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday','Saturday','Sunday'];
     final dayString = dayNames[selectedDate.weekday - 1]; // Full day name
     
     // Date format to use for parsing
