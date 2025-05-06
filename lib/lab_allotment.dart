@@ -10,11 +10,13 @@ class LabAllotmentPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Lab Allotment'),
-      ),
+
+      
+      
       body: Column(
+        
         children: <Widget>[
+          SizedBox(height: 35),
           Obx(() {
             return TableCalendar(
               firstDay: DateTime.utc(2025, 1, 1),
@@ -83,14 +85,14 @@ class LabAllotmentPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 100,
+                width: 60,
                 height: 40,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(border: Border.all()),
                 child: Text('Lab'),
               ),
               ...labs.map((lab) => Container(
-                    width: 100,
+                    width: 60,
                     height: 40,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(border: Border.all()),
@@ -110,7 +112,7 @@ class LabAllotmentPage extends StatelessWidget {
                   Row(
                     children: hours
                         .map((hour) => Container(
-                              width: 80,
+                              width: 60,
                               height: 40,
                               alignment: Alignment.center,
                               decoration: BoxDecoration(border: Border.all()),
@@ -161,7 +163,7 @@ class LabAllotmentPage extends StatelessWidget {
                             : '';
 
                         return Container(
-                          width: 80,
+                          width: 60,
                           height: 40,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(

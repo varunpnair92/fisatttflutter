@@ -62,7 +62,7 @@ class LabController extends GetxController {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        print("Date${response.body}");
+        //print("Date${response.body}");
         labAllotments.value = Map<String, List<Map<String, dynamic>>>.from(
           data.map((key, value) => MapEntry(
                 key,
