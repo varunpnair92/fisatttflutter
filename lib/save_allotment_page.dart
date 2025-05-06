@@ -43,8 +43,8 @@ class SaveAllotmentPage extends StatelessWidget {
                   'L7',
                   'L8',
                   'L9',
-                  'MICRO PROCESSOR LAB',
-                  'PG LAB'
+                  'MP',
+                  'PG'
                 ].map((lab) {
                   return DropdownMenuItem<String>(
                     value: lab,
