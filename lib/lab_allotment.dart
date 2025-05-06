@@ -38,7 +38,8 @@ class LabAllotmentPage extends StatelessWidget {
             );
           }),
           Expanded(
-            child: Obx(() => _buildAllotmentTable(labController.selectedDate.value)),
+            child: Obx(
+                () => _buildAllotmentTable(labController.selectedDate.value)),
           ),
         ],
       ),
@@ -46,188 +47,140 @@ class LabAllotmentPage extends StatelessWidget {
   }
 
   Widget _buildAllotmentTable(DateTime selectedDate) {
-    final labs = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'MP', 'PG'];
+    final labs = [
+      'L1',
+      'L2',
+      'L3',
+      'L4',
+      'L5',
+      'L6',
+      'L7',
+      'L8',
+      'L9',
+      'MP',
+      'PG'
+    ];
     final hours = ['H1', 'H2', 'H3', 'H4', 'LB', 'H5', 'H6', 'H7'];
-
-    // Convert selectedDate to a day string
-    final dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday','Saturday','Sunday'];
-    final dayString = dayNames[selectedDate.weekday - 1]; // Full day name
-    
-    // Date format to use for parsing
+    final dayNames = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
+    ];
+    final dayString = dayNames[selectedDate.weekday - 1];
     final DateFormat dateFormat = DateFormat('dd-MM-yyyy');
-    
+
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Column(
-          children: [
-            // Header Row for Hours
-            Table(
-              border: TableBorder.all(),
-              columnWidths: {
-                0: FixedColumnWidth(100), // Lab name column width
-                for (int i = 1; i < hours.length + 1; i++) i: FixedColumnWidth(50), // Hours column width
-              },
-              children: [
-                TableRow(
-                  children: [
-                    Container(
-                      alignment: Alignment.center,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        border: Border.all(),
-                      ),
-                      child: Text('L'),
-                    ),
-                    ...hours.map((hour) => Container(
-                      alignment: Alignment.center,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        border: Border.all(),
-                      ),
-                      child: Text(hour),
-                    )).toList(),
-                  ],
-                ),
-                // Data Rows
-                ...labs.map((lab) {
-                  final labEntries = labController.labAllotments[lab] ?? [];
-                  
-                  // Filter entries based on the selected date
-                  final dayEntries = labEntries.where((entry) {
-                    try {
-                      final startDate = dateFormat.parse(entry['start_date'] ?? '');
-                      final endDate = dateFormat.parse(entry['end_date'] ?? '');
-                      bool dateInRange = selectedDate.isAfter(startDate.subtract(Duration(days: 1))) &&
-                                         selectedDate.isBefore(endDate.add(Duration(days: 1)));
-                      bool correctDay = entry['day'] == dayString;
-                      
-                      // Debug output
-                      print('Start Date: $startDate, End Date: $endDate, Selected Date: $selectedDate, Day: $dayString');
-                      print('In Range: $dateInRange, Correct Day: $correctDay');
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Fixed lab name column
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 100,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(border: Border.all()),
+                child: Text('Lab'),
+              ),
+              ...labs.map((lab) => Container(
+                    width: 100,
+                    height: 40,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(border: Border.all()),
+                    child: Text(lab),
+                  )),
+            ],
+          ),
 
-                      return dateInRange && correctDay;
-                    } catch (e) {
-                      // Handle any parsing errors
-                      print('Date parsing error: $e');
-                      return false;
-                    }
-                  }).toList();
+          // Scrollable hour table
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Hours header
+                  Row(
+                    children: hours
+                        .map((hour) => Container(
+                              width: 80,
+                              height: 40,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(border: Border.all()),
+                              child: Text(hour),
+                            ))
+                        .toList(),
+                  ),
 
-                  List<Widget> hourCells = List.generate(hours.length, (index) {
-                    final hour = hours[index];
-                    
-                    // Map hour 8 to LB in the entry's hours string
-                    final mappedHour = hour == 'LB' ? '8' : hour.replaceFirst('H', '');
-                    final matchingEntries = dayEntries.where((entry) {
-                      // Replace '8' with 'LB' for display purposes
-                      final entryHours = entry['hours']?.split(',').map((e) => e.trim()).toList();
-                      return entryHours?.contains(mappedHour) ?? false;
-                    }).toList();
+                  // Data rows
+                  ...labs.map((lab) {
+                    final labEntries = labController.labAllotments[lab] ?? [];
 
-                    final cellContent = matchingEntries.isNotEmpty
-                        ? matchingEntries.map((entry) {
-                            return '${entry['class_name']} - ${entry['subject_name']}';
-                          }).join('\n')
-                        : '';
-
-                    return Container(
-                      alignment: Alignment.center,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        border: Border.all(),
-                        color: matchingEntries.isNotEmpty ? Colors.blue[100] : null,
-                      ),
-                      child: Text(cellContent),
-                    );
-                  });
-
-                  // Merge cells based on hours
-                  List<Widget> mergedHourCells = [];
-                  int index = 0;
-
-                  while (index < hours.length) {
-                    final hour = hours[index];
-                    final hourNumber = hour == 'LB' ? '8' : hour.replaceFirst('H', '');
-                    final matchingEntries = dayEntries.where((entry) {
-                      final entryHours = entry['hours']?.split(',').map((e) => e.trim()).toList();
-                      return entryHours?.contains(hourNumber) ?? false;
-                    }).toList();
-
-                    final cellContent = matchingEntries.isNotEmpty
-                        ? matchingEntries.map((entry) {
-                            return '${entry['class_name']} - ${entry['subject_name']}';
-                          }).join('\n')
-                        : '';
-
-                    if (cellContent.isNotEmpty) {
-                      int mergeEnd = index;
-
-                      // Determine the end index for merging
-                      while (mergeEnd + 1 < hours.length &&
-                             dayEntries.any((entry) {
-                               final entryHours = entry['hours']?.split(',').map((e) => e.trim()).toList();
-                               return entryHours?.contains(hours[mergeEnd + 1].replaceFirst('H', '')) ?? false;
-                             }) &&
-                             cellContent == hourCells[mergeEnd].toString()) {
-                        mergeEnd++;
+                    final dayEntries = labEntries.where((entry) {
+                      try {
+                        final startDate =
+                            dateFormat.parse(entry['start_date'] ?? '');
+                        final endDate =
+                            dateFormat.parse(entry['end_date'] ?? '');
+                        bool dateInRange = selectedDate.isAfter(
+                                startDate.subtract(Duration(days: 1))) &&
+                            selectedDate
+                                .isBefore(endDate.add(Duration(days: 1)));
+                        bool correctDay = entry['day'] == dayString;
+                        return dateInRange && correctDay;
+                      } catch (e) {
+                        print('Date parsing error: $e');
+                        return false;
                       }
+                    }).toList();
 
-                      // Add the merged cell
-                      mergedHourCells.add(
-                        _buildMergedCell(cellContent, mergeEnd - index + 1),
-                      );
+                    return Row(
+                      children: hours.map((hour) {
+                        final mappedHour =
+                            hour == 'LB' ? '8' : hour.replaceFirst('H', '');
+                        final matchingEntries = dayEntries.where((entry) {
+                          final entryHours = entry['hours']
+                              ?.split(',')
+                              .map((e) => e.trim())
+                              .toList();
+                          return entryHours?.contains(mappedHour) ?? false;
+                        }).toList();
 
-                      index = mergeEnd + 1;
-                    } else {
-                      mergedHourCells.add(_buildEmptyCell());
-                      index++;
-                    }
-                  }
+                        final cellContent = matchingEntries.isNotEmpty
+                            ? matchingEntries
+                                .map((entry) =>
+                                    '${entry['class_name']} - ${entry['subject_name']}')
+                                .join('\n')
+                            : '';
 
-                  return TableRow(
-                    children: [
-                      Container(
-                        alignment: Alignment.center,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          border: Border.all(),
-                        ),
-                        child: Text(lab),
-                      ),
-                      ...mergedHourCells,
-                    ],
-                  );
-                }).toList(),
-              ],
+                        return Container(
+                          width: 80,
+                          height: 40,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            border: Border.all(),
+                            color: matchingEntries.isNotEmpty
+                                ? Colors.blue[100]
+                                : null,
+                          ),
+                          child: Text(cellContent),
+                        );
+                      }).toList(),
+                    );
+                  }),
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildMergedCell(String content, int colspan) {
-    return Container(
-      alignment: Alignment.center,
-      height: 40,
-      decoration: BoxDecoration(
-        border: Border.all(),
-        color: Colors.blue[100],
-      ),
-      child: Text(content),
-    );
-  }
-
-  Widget _buildEmptyCell() {
-    return Container(
-      alignment: Alignment.center,
-      height: 40,
-      decoration: BoxDecoration(
-        border: Border.all(),
-      ),
-      child: SizedBox.shrink(),
     );
   }
 }
