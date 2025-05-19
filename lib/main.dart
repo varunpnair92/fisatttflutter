@@ -12,21 +12,18 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
-    options: const FirebaseOptions(
+    options: FirebaseOptions(
       apiKey: "AIzaSyBRhjSUtUg3POkZ6HR-NN8HN9Ecxod3JH4",
       appId: "1:967714456718:android:1a2f43536d6b19bc5ab5df",
       messagingSenderId: "967714456718",
       projectId: "fisattimetablefirebase",
       storageBucket: "fisattimetablefirebase.firebasestorage.app",
     ),
-  );
+  );  
   Get.put(HomeController());
-  runApp(const MyApp());
+  runApp(MyApp());
 }
-
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
@@ -35,10 +32,10 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       getPages: [
-        GetPage(name: "/", page: () => HomePage()),
-        GetPage(name: "/start", page: () => StartupPage()),
-        GetPage(name: "/user", page: () => HomePageU()),
-        GetPage(name: "/google", page: () => GoogleSignInPage()),
+        GetPage(name: "/", page: ()=> HomePage()),
+         GetPage(name: "/start", page: ()=> StartupPage()),
+        GetPage(name: "/user", page: ()=> HomePageU()),
+        GetPage(name: "/google", page: ()=> GoogleSignInPage()),
       ],
       initialRoute: "/",
     );
