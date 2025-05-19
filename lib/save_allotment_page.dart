@@ -3,20 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:get/get.dart';
 import 'lab_controller.dart'; // Import your controller
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class SaveAllotmentPage extends StatelessWidget {
   final LabController labController = Get.put(LabController());
   final _formKey = GlobalKey<FormState>();
 
-  // Create TextEditingControllers for date fields
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
 
+  final List<String> labNames = [
+    'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'MP', 'PG'
+  ];
+
+  final List<String> hoursList = ['1', '2', '3', '4', '8', '5', '6', '7'];
+
   @override
   Widget build(BuildContext context) {
-    // Update the controllers with values from labController
     _startDateController.text = labController.formData['start_date'] ?? '';
     _endDateController.text = labController.formData['end_date'] ?? '';
 
@@ -31,114 +33,66 @@ class SaveAllotmentPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
+              // Lab Name Dropdown
               DropdownButtonFormField<String>(
                 decoration: InputDecoration(labelText: 'Lab Name'),
-                items: [
-                  'L1',
-                  'L2',
-                  'L3',
-                  'L4',
-                  'L5',
-                  'L6',
-                  'L7',
-                  'L8',
-                  'L9',
-                  'MP',
-                  'PG'
-                ].map((lab) {
-                  return DropdownMenuItem<String>(
-                    value: lab,
-                    child: Text(lab),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  labController.formData.update('lab_name', (_) => value ?? '');
-                },
-                validator: (value) =>
-                    value == null ? 'Please select a lab' : null,
+                items: labNames.map((lab) => DropdownMenuItem(value: lab, child: Text(lab))).toList(),
+                onChanged: (value) => labController.formData['lab_name'] = value ?? '',
+                validator: (value) => value == null ? 'Please select a lab' : null,
               ),
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Hours Allotted'),
-                onChanged: (value) {
-                  labController.formData.update('hours_allotted', (_) => value);
-                },
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter hours allotted' : null,
+              SizedBox(height: 16),
+
+              // Hour Range Dropdown
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      decoration: InputDecoration(labelText: 'From Hour'),
+                      items: hoursList.map((hour) => DropdownMenuItem(value: hour, child: Text(hour))).toList(),
+                      onChanged: (value) => labController.formData['from_hour'] = value ?? '',
+                      validator: (value) => value == null ? 'Select from hour' : null,
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      decoration: InputDecoration(labelText: 'To Hour'),
+                      items: hoursList.map((hour) => DropdownMenuItem(value: hour, child: Text(hour))).toList(),
+                      onChanged: (value) => labController.formData['to_hour'] = value ?? '',
+                      validator: (value) => value == null ? 'Select to hour' : null,
+                    ),
+                  ),
+                ],
               ),
+
+              SizedBox(height: 16),
+
+              // Subject Name Input
               TextFormField(
                 decoration: InputDecoration(labelText: 'Subject Name'),
-                onChanged: (value) {
-                  labController.formData.update('subject_name', (_) => value);
-                },
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter subject name' : null,
+                onChanged: (value) => labController.formData['subject_name'] = value,
+                validator: (value) => value!.isEmpty ? 'Please enter subject name' : null,
               ),
+
+              SizedBox(height: 16),
+
+              // Class Name Input
               TextFormField(
                 decoration: InputDecoration(labelText: 'Class Name'),
-                onChanged: (value) {
-                  labController.formData.update('class_name', (_) => value);
-                },
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter class name' : null,
+                onChanged: (value) => labController.formData['class_name'] = value,
+                validator: (value) => value!.isEmpty ? 'Please enter class name' : null,
               ),
-              TextFormField(
-                readOnly: true,
-                controller: _startDateController,
-                decoration:
-                    InputDecoration(labelText: 'Start Date (dd-MM-yyyy)'),
-                onTap: () => _selectDate(context, 'start_date'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter start date';
-                  }
-                  try {
-                    DateFormat('dd-MM-yyyy').parse(value);
-                  } catch (e) {
-                    return 'Invalid date format';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                readOnly: true,
-                controller: _endDateController,
-                decoration: InputDecoration(labelText: 'End Date (dd-MM-yyyy)'),
-                onTap: () => _selectDate(context, 'end_date'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter end date';
-                  }
-                  try {
-                    DateFormat('dd-MM-yyyy').parse(value);
-                  } catch (e) {
-                    return 'Invalid date format';
-                  }
-                  return null;
-                },
-              ),
+
+              SizedBox(height: 16),
+
+              // Date Pickers
+              _buildDateField('Start Date', _startDateController, 'start_date', context),
+              SizedBox(height: 16),
+              _buildDateField('End Date', _endDateController, 'end_date', context),
+
               SizedBox(height: 20),
-              Text('Allot:'),
-              ListTile(
-                title: const Text('Continue'),
-                leading: Radio<String>(
-                  value: 'continue',
-                  groupValue: labController.formData['allot'],
-                  onChanged: (value) {
-                    labController.formData.update('allot', (_) => value!);
-                  },
-                ),
-              ),
-              ListTile(
-                title: const Text('Repeat'),
-                leading: Radio<String>(
-                  value: 'repeat',
-                  groupValue: labController.formData['allot'],
-                  onChanged: (value) {
-                    labController.formData.update('allot', (_) => value!);
-                  },
-                ),
-              ),
-              SizedBox(height: 20),
+
+              // Save Button
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
@@ -147,21 +101,6 @@ class SaveAllotmentPage extends StatelessWidget {
                 },
                 child: Text('Save'),
               ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_startDateController.text.isNotEmpty) {
-                    await _generateReport();
-                  } else {
-                    // Show an error if the start date is not selected
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text('Please select a start date first.')),
-                    );
-                  }
-                },
-                child: Text('Generate Report'),
-              ),
             ],
           ),
         ),
@@ -169,32 +108,26 @@ class SaveAllotmentPage extends StatelessWidget {
     );
   }
 
-  Future<void> _selectDate(BuildContext context, String dateType) async {
-    final DateTime? selectedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+  Widget _buildDateField(String label, TextEditingController controller, String field, BuildContext context) {
+    return TextFormField(
+      readOnly: true,
+      controller: controller,
+      decoration: InputDecoration(labelText: label),
+      onTap: () async {
+        final selectedDate = await showDatePicker(
+          context: context,
+          initialDate: DateTime.now(),
+          firstDate: DateTime(2000),
+          lastDate: DateTime(2101),
+        );
+
+        if (selectedDate != null) {
+          final formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+          labController.formData[field] = formattedDate;
+          controller.text = formattedDate;
+        }
+      },
+      validator: (value) => value!.isEmpty ? 'Please select $label' : null,
     );
-
-    if (selectedDate != null) {
-      final formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-      labController.formData.update(dateType, (_) => formattedDate);
-      if (dateType == 'start_date') {
-        _startDateController.text = formattedDate;
-      } else if (dateType == 'end_date') {
-        _endDateController.text = formattedDate;
-      }
-    }
-  }
-
-  Future<void> _generateReport() async {
-    DateTime startDate =
-        DateFormat('dd-MM-yyyy').parse(_startDateController.text);
-    DateTime endDate=DateFormat('dd-MM-yyyy').parse(_endDateController.text);
-
-    // Fetch the lab allotments for the start date
-    await labController.fetchLabAllotmentsForRange(startDate,endDate);
-    Get.to(LabAllotmentsReport());
   }
 }

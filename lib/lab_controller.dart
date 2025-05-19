@@ -88,76 +88,97 @@ class LabController extends GetxController {
   }
 
   // Save form data to the server
-  Future<void> saveData() async {
-    var url =
-        "${Sharedvariable().ip}/lab/laballot"; // URL for the normal request
-    var continueUrl =
-        "${Sharedvariable().ip}/lab/laballot_continue"; // URL for continuing without conflict check
+ // Save form data to the server with hour range parsing
+Future<void> saveData() async {
+  var url = "${Sharedvariable().ip}/lab/laballot";
+  var continueUrl = "${Sharedvariable().ip}/lab/laballot_continue";
 
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(formData.value),
-      );
+  try {
+    // Parse the hours_allotted field before sending to the server
+    String hoursAllotted = formData.value["hours_allotted"] ?? "";
+    formData.value["hours_allotted"] = _parseHourRange(hoursAllotted);
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        // Allotment successfully saved
-        Get.snackbar("Saved", "Allotment Saved");
-        getLabExternal();
-        update();
-      } else if (response.statusCode == 400) {
-        // Conflict detected, show dialog with the conflict message
-        final responseBody = jsonDecode(response.body);
-        final conflictMessage = responseBody["error"] ?? "Unknown conflict";
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(formData.value),
+    );
 
-        // Show dialog with conflict message
-        Get.defaultDialog(
-          title: "Conflict Detected",
-          middleText: conflictMessage,
-          textCancel: "Cancel",
-          textConfirm: "Continue",
-          barrierDismissible: false, // Prevent accidental dismissals
-          onCancel: () {
-            Get.back(); // Ensure dialog is dismissed
-            Future.delayed(Duration(milliseconds: 100), () {
-              Get.snackbar("Cancelled", "Allotment process cancelled");
-            });
-          },
-          onConfirm: () async {
-            Get.back(); // Close the dialog before proceeding
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      Get.snackbar("Saved", "Allotment Saved");
+      getLabExternal();
+      update();
+    } else if (response.statusCode == 400) {
+      final responseBody = jsonDecode(response.body);
+      final conflictMessage = responseBody["error"] ?? "Unknown conflict";
 
-            formData.value["allot"] =
-                "continue"; // Set allot flag to 'continue'
+      Get.defaultDialog(
+        title: "Conflict Detected",
+        middleText: conflictMessage,
+        textCancel: "Cancel",
+        textConfirm: "Continue",
+        barrierDismissible: false,
+        onCancel: () {
+          Get.back();
+          Future.delayed(Duration(milliseconds: 100), () {
+            Get.snackbar("Cancelled", "Allotment process cancelled");
+          });
+        },
+        onConfirm: () async {
+          Get.back();
 
-            try {
-              // Send request to continue saving
-              final continueResponse = await http.post(
-                Uri.parse(continueUrl),
-                headers: {"Content-Type": "application/json"},
-                body: jsonEncode(formData.value),
-              );
+          formData.value["allot"] = "continue";
 
-              if (continueResponse.statusCode == 200 ||
-                  continueResponse.statusCode == 201) {
-                getLabExternal();
-                update();
-                Get.snackbar("Saved", "Allotment Saved with Conflict");
-              } else {
-                Get.snackbar("Error", "Failed to save data with conflict.");
-              }
-            } catch (e) {
-              Get.snackbar("Error", "Exception while saving data: $e");
+          try {
+            final continueResponse = await http.post(
+              Uri.parse(continueUrl),
+              headers: {"Content-Type": "application/json"},
+              body: jsonEncode(formData.value),
+            );
+
+            if (continueResponse.statusCode == 200 || continueResponse.statusCode == 201) {
+              getLabExternal();
+              update();
+              Get.snackbar("Saved", "Allotment Saved with Conflict");
+            } else {
+              Get.snackbar("Error", "Failed to save data with conflict.");
             }
-          },
-        );
-      } else {
-        Get.snackbar("Error", "Failed to save data.");
+          } catch (e) {
+            Get.snackbar("Error", "Exception while saving data: $e");
+          }
+        },
+      );
+    } else {
+      Get.snackbar("Error", "Failed to save data.");
+    }
+  } catch (e) {
+    Get.snackbar("Error", "Exception while saving data: $e");
+  }
+}
+
+// Helper method to parse hour ranges
+String _parseHourRange(String hours) {
+  List<String> expandedHours = [];
+
+  for (String part in hours.split(",")) {
+    part = part.trim();
+    if (part.contains("-")) {
+      List<String> range = part.split("-");
+      if (range.length == 2) {
+        int start = int.tryParse(range[0]) ?? 0;
+        int end = int.tryParse(range[1]) ?? 0;
+        if (start > 0 && end > 0 && start <= end) {
+          expandedHours.addAll(List.generate(end - start + 1, (i) => (start + i).toString()));
+        }
       }
-    } catch (e) {
-      Get.snackbar("Error", "Exception while saving data: $e");
+    } else {
+      expandedHours.add(part);
     }
   }
+
+  return expandedHours.join(",");
+}
+
 
   Future<List<Labexternal>?> getLabExternal() async {
     var url2 = "${Sharedvariable().ip}/lab/labexternal";
