@@ -20,7 +20,8 @@ class _SaveAllotmentPageState extends State<SaveAllotmentPage> {
     'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'MP', 'PG'
   ];
 
-  final List<String> hoursList = ['1', '2', '3', '4', '5', '6', '7', '8'];
+  // Original list: '1' to '7' for periods, '8' for LB (Library)
+  final List<String> hoursList = ['1', '2', '3', '4', '8','5', '6', '7'];
 
   String? selectedLab;
   String? fromHour;
@@ -85,7 +86,7 @@ class _SaveAllotmentPageState extends State<SaveAllotmentPage> {
                     child: DropdownButtonFormField<String>(
                       value: fromHour,
                       decoration: InputDecoration(labelText: 'From Hour'),
-                      items: hoursList.map((hour) => DropdownMenuItem(value: hour, child: Text(hour))).toList(),
+                      items: hoursList.map((hour) => DropdownMenuItem(value: hour, child: Text(hour == '8' ? 'LB' : hour))).toList(),
                       onChanged: (value) {
                         setState(() => fromHour = value);
                         labController.formData['from_hour'] = value ?? '';
@@ -98,7 +99,7 @@ class _SaveAllotmentPageState extends State<SaveAllotmentPage> {
                     child: DropdownButtonFormField<String>(
                       value: toHour,
                       decoration: InputDecoration(labelText: 'To Hour'),
-                      items: hoursList.map((hour) => DropdownMenuItem(value: hour, child: Text(hour))).toList(),
+                      items: hoursList.map((hour) => DropdownMenuItem(value: hour, child: Text(hour == '8' ? 'LB' : hour))).toList(),
                       onChanged: (value) {
                         setState(() => toHour = value);
                         labController.formData['to_hour'] = value ?? '';
