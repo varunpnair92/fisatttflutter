@@ -104,6 +104,8 @@ class LabController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Allotment successfully saved
         Get.snackbar("Saved", "Allotment Saved");
+        resetFormData();
+
         getLabExternal();
         update();
       } else if (response.statusCode == 400) {
@@ -140,6 +142,7 @@ class LabController extends GetxController {
 
               if (continueResponse.statusCode == 200 ||
                   continueResponse.statusCode == 201) {
+                resetFormData();
                 getLabExternal();
                 update();
                 Get.snackbar("Saved", "Allotment Saved with Conflict");
@@ -167,7 +170,6 @@ class LabController extends GetxController {
     String receivedJson = response.body;
 
     if (response.statusCode == 200) {
-      var data = await json.decode(response.body);
       //print(data);
 
       List bodyjosn = jsonDecode(response.body);
@@ -208,5 +210,20 @@ class LabController extends GetxController {
     } catch (e) {
       // print("Exception: $e");
     }
+  }
+
+  void resetFormData() {
+    print("hererererer");
+     // 👈 reset form
+    formData.value = {
+      "lab_name": "",
+      "hours_allotted": "",
+      "subject_name": "",
+      "class_name": "",
+      "start_date": "",
+      "end_date": "",
+      "allot": "continue",
+      "external": "external",
+    };
   }
 }

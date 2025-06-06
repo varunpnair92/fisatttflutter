@@ -39,11 +39,11 @@ class LabController extends GetxController {
           )),
         );
       } else {
-        print("Error: ${response.statusCode}");
-        print("Response body: ${response.body}");
+       // print("Error: ${response.statusCode}");
+        //print("Response body: ${response.body}");
       }
     } catch (e) {
-      print("Exception: $e");
+      //print("Exception: $e");
     }
   }
 

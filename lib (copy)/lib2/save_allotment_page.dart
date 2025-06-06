@@ -125,6 +125,7 @@ class SaveAllotmentPage extends StatelessWidget {
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     labController.saveData();
+                    _formKey.currentState!.reset();
                   }
                 },
                 child: Text('Save'),

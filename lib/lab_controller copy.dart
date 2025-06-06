@@ -162,10 +162,9 @@ Future<void> saveData() async {
     var response = await http
         .get(Uri.parse(url2), headers: {"Content-Type": "application/json"});
 
-    String receivedJson = response.body;
 
     if (response.statusCode == 200) {
-      var data = await json.decode(response.body);
+      
       //print(data);
 
       List bodyjosn = jsonDecode(response.body);
