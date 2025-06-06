@@ -105,7 +105,7 @@ class LabController extends GetxController {
         // Allotment successfully saved
         Get.snackbar("Saved", "Allotment Saved");
         getLabExternal();
-        update();
+        formReset();
       } else if (response.statusCode == 400) {
         // Conflict detected, show dialog with the conflict message
         final responseBody = jsonDecode(response.body);
@@ -208,5 +208,19 @@ class LabController extends GetxController {
     } catch (e) {
       // print("Exception: $e");
     }
+  }
+
+  void formReset() {
+    formData.value = {
+      "lab_name": "",
+      "hours_allotted": "",
+      "subject_name": "",
+      "class_name": "",
+      "start_date": "",
+      "end_date": "",
+      "allot": "continue",
+      "external": "external",
+    };
+    update();
   }
 }

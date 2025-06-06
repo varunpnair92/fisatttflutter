@@ -4,7 +4,12 @@ import 'package:intl/intl.dart';
 import 'package:get/get.dart';
 import 'lab_controller.dart';
 
-class SaveAllotmentPage extends StatelessWidget {
+class SaveAllotmentPage extends StatefulWidget {
+  @override
+  _SaveAllotmentPageState createState() => _SaveAllotmentPageState();
+}
+
+class _SaveAllotmentPageState extends State<SaveAllotmentPage> {
   final LabController labController = Get.put(LabController());
   final _formKey = GlobalKey<FormState>();
 
@@ -15,13 +20,42 @@ class SaveAllotmentPage extends StatelessWidget {
     'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'MP', 'PG'
   ];
 
-  final List<String> hoursList = ['1', '2', '3', '4', '8', '5', '6', '7'];
+  final List<String> hoursList = ['1', '2', '3', '4', '5', '6', '7', '8'];
+
+  String? selectedLab;
+  String? fromHour;
+  String? toHour;
+  String allotOption = "continue";
+
+  final TextEditingController _subjectController = TextEditingController();
+  final TextEditingController _classController = TextEditingController();
+
+  void _resetForm() {
+    setState(() {
+      selectedLab = null;
+      fromHour = null;
+      toHour = null;
+      allotOption = 'continue';
+      _subjectController.clear();
+      _classController.clear();
+      _startDateController.clear();
+      _endDateController.clear();
+
+      labController.formData.value = {
+        "lab_name": "",
+        "hours_allotted": "",
+        "subject_name": "",
+        "class_name": "",
+        "start_date": "",
+        "end_date": "",
+        "allot": "continue",
+        "external": "external",
+      };
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    _startDateController.text = labController.formData['start_date'] ?? '';
-    _endDateController.text = labController.formData['end_date'] ?? '';
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Save Allotment'),
@@ -33,32 +67,42 @@ class SaveAllotmentPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              // Lab Name Dropdown
               DropdownButtonFormField<String>(
+                value: selectedLab,
                 decoration: InputDecoration(labelText: 'Lab Name'),
                 items: labNames.map((lab) => DropdownMenuItem(value: lab, child: Text(lab))).toList(),
-                onChanged: (value) => labController.formData['lab_name'] = value ?? '',
+                onChanged: (value) {
+                  setState(() => selectedLab = value);
+                  labController.formData['lab_name'] = value ?? '';
+                },
                 validator: (value) => value == null ? 'Please select a lab' : null,
               ),
               SizedBox(height: 16),
 
-              // Hour Range Dropdown
               Row(
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
+                      value: fromHour,
                       decoration: InputDecoration(labelText: 'From Hour'),
                       items: hoursList.map((hour) => DropdownMenuItem(value: hour, child: Text(hour))).toList(),
-                      onChanged: (value) => labController.formData['from_hour'] = value ?? '',
+                      onChanged: (value) {
+                        setState(() => fromHour = value);
+                        labController.formData['from_hour'] = value ?? '';
+                      },
                       validator: (value) => value == null ? 'Select from hour' : null,
                     ),
                   ),
                   SizedBox(width: 16),
                   Expanded(
                     child: DropdownButtonFormField<String>(
+                      value: toHour,
                       decoration: InputDecoration(labelText: 'To Hour'),
                       items: hoursList.map((hour) => DropdownMenuItem(value: hour, child: Text(hour))).toList(),
-                      onChanged: (value) => labController.formData['to_hour'] = value ?? '',
+                      onChanged: (value) {
+                        setState(() => toHour = value);
+                        labController.formData['to_hour'] = value ?? '';
+                      },
                       validator: (value) => value == null ? 'Select to hour' : null,
                     ),
                   ),
@@ -67,8 +111,8 @@ class SaveAllotmentPage extends StatelessWidget {
 
               SizedBox(height: 16),
 
-              // Subject Name Input
               TextFormField(
+                controller: _subjectController,
                 decoration: InputDecoration(labelText: 'Subject Name'),
                 onChanged: (value) => labController.formData['subject_name'] = value,
                 validator: (value) => value!.isEmpty ? 'Please enter subject name' : null,
@@ -76,8 +120,8 @@ class SaveAllotmentPage extends StatelessWidget {
 
               SizedBox(height: 16),
 
-              // Class Name Input
               TextFormField(
+                controller: _classController,
                 decoration: InputDecoration(labelText: 'Class Name'),
                 onChanged: (value) => labController.formData['class_name'] = value,
                 validator: (value) => value!.isEmpty ? 'Please enter class name' : null,
@@ -85,55 +129,55 @@ class SaveAllotmentPage extends StatelessWidget {
 
               SizedBox(height: 16),
 
-              // Date Pickers
-              _buildDateField('Start Date', _startDateController, 'start_date', context),
+              _buildDateField('Start Date', _startDateController, 'start_date'),
               SizedBox(height: 16),
-              _buildDateField('End Date', _endDateController, 'end_date', context),
+              _buildDateField('End Date', _endDateController, 'end_date'),
 
               SizedBox(height: 20),
 
-              // Allot Options
               Text('Allot:'),
               ListTile(
                 title: const Text('Continue'),
                 leading: Radio<String>(
                   value: 'continue',
-                  groupValue: labController.formData['allot'],
-                  onChanged: (value) => labController.formData['allot'] = value!,
+                  groupValue: allotOption,
+                  onChanged: (value) {
+                    setState(() => allotOption = value!);
+                    labController.formData['allot'] = value!;
+                  },
                 ),
               ),
               ListTile(
                 title: const Text('Repeat'),
                 leading: Radio<String>(
                   value: 'repeat',
-                  groupValue: labController.formData['allot'],
-                  onChanged: (value) => labController.formData['allot'] = value!,
+                  groupValue: allotOption,
+                  onChanged: (value) {
+                    setState(() => allotOption = value!);
+                    labController.formData['allot'] = value!;
+                  },
                 ),
               ),
 
               SizedBox(height: 20),
 
-              // Save Button with Hour Conversion
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    final fromHour = labController.formData['from_hour'];
-                    final toHour = labController.formData['to_hour'];
+                    final fromIndex = hoursList.indexOf(fromHour!);
+                    final toIndex = hoursList.indexOf(toHour!);
 
-                    if (fromHour != null && toHour != null) {
-                      final fromIndex = hoursList.indexOf(fromHour);
-                      final toIndex = hoursList.indexOf(toHour);
+                    if (fromIndex <= toIndex) {
+                      final selectedHours = hoursList.sublist(fromIndex, toIndex + 1);
+                      labController.formData['hours_allotted'] = selectedHours.join(',');
+                      labController.formData.remove('from_hour');
+                      labController.formData.remove('to_hour');
 
-                      if (fromIndex <= toIndex) {
-                        final selectedHours = hoursList.sublist(fromIndex, toIndex + 1);
-                        labController.formData['hours_allotted'] = selectedHours.join(',');
-                        labController.formData.remove('from_hour');
-                        labController.formData.remove('to_hour');
-
-                        labController.saveData();
-                      } else {
-                        Get.snackbar('Invalid Range', 'From hour must be less than or equal to To hour');
-                      }
+                      labController.saveData().then((_) {
+                        _resetForm(); // Clear form after save
+                      });
+                    } else {
+                      Get.snackbar('Invalid Range', 'From hour must be less than or equal to To hour');
                     }
                   }
                 },
@@ -142,17 +186,17 @@ class SaveAllotmentPage extends StatelessWidget {
 
               SizedBox(height: 20),
 
-              // Generate Report Button
               ElevatedButton(
                 onPressed: () async {
-                  if (_startDateController.text.isNotEmpty) {
+                  if (_startDateController.text.isNotEmpty &&
+                      _endDateController.text.isNotEmpty) {
                     await labController.fetchLabAllotmentsForRange(
                       DateFormat('dd-MM-yyyy').parse(_startDateController.text),
                       DateFormat('dd-MM-yyyy').parse(_endDateController.text),
                     );
                     Get.to(LabAllotmentsReport());
                   } else {
-                    Get.snackbar('Error', 'Please select a start date first.');
+                    Get.snackbar('Error', 'Please select both start and end dates.');
                   }
                 },
                 child: Text('Generate Report'),
@@ -164,23 +208,25 @@ class SaveAllotmentPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDateField(String label, TextEditingController controller, String field, BuildContext context) {
+  Widget _buildDateField(String label, TextEditingController controller, String field) {
     return TextFormField(
       readOnly: true,
       controller: controller,
       decoration: InputDecoration(labelText: label),
       onTap: () async {
-        final selectedDate = await showDatePicker(
+        final pickedDate = await showDatePicker(
           context: context,
           initialDate: DateTime.now(),
           firstDate: DateTime(2000),
           lastDate: DateTime(2101),
         );
 
-        if (selectedDate != null) {
-          final formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
-          labController.formData[field] = formattedDate;
-          controller.text = formattedDate;
+        if (pickedDate != null) {
+          final formatted = DateFormat('dd-MM-yyyy').format(pickedDate);
+          setState(() {
+            controller.text = formatted;
+            labController.formData[field] = formatted;
+          });
         }
       },
       validator: (value) => value!.isEmpty ? 'Please select $label' : null,
