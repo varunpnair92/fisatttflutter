@@ -15,7 +15,7 @@ class SaveAllotmentPage extends StatelessWidget {
     'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'MP', 'PG'
   ];
 
-  final List<String> hoursList = ['1', '2', '3', '4', '8', '5', '6', '7'];
+  final List<String> hoursList = ['1', '2', '3', '4', 'LB', '5', '6', '7'];
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +113,7 @@ class SaveAllotmentPage extends StatelessWidget {
 
               SizedBox(height: 20),
 
-              // Save Button with Hour Conversion
+              // Save Button
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
@@ -125,7 +125,11 @@ class SaveAllotmentPage extends StatelessWidget {
                       final toIndex = hoursList.indexOf(toHour);
 
                       if (fromIndex <= toIndex) {
-                        final selectedHours = hoursList.sublist(fromIndex, toIndex + 1);
+                        final selectedHours = hoursList
+                            .sublist(fromIndex, toIndex + 1)
+                            .map((h) => h == 'LB' ? '8' : h)
+                            .toList();
+
                         labController.formData['hours_allotted'] = selectedHours.join(',');
                         labController.formData.remove('from_hour');
                         labController.formData.remove('to_hour');
