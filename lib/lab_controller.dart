@@ -1,4 +1,5 @@
 import 'package:fisat_timetable/shared.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -88,7 +89,11 @@ class LabController extends GetxController {
   }
 
   // Save form data to the server
-  Future<void> saveData() async {
+  Future<void> saveData({
+    required GlobalKey<FormState> formKey,
+    required TextEditingController startDateController,
+    required TextEditingController endDateController,
+  }) async {
     var url =
         "${Sharedvariable().ip}/lab/laballot"; // URL for the normal request
     var continueUrl =
@@ -105,7 +110,11 @@ class LabController extends GetxController {
         // Allotment successfully saved
         Get.snackbar("Saved", "Allotment Saved");
         getLabExternal();
-        formReset();
+        clearAll(
+          formKey: formKey,
+          startDateController: startDateController,
+          endDateController: endDateController,
+        );
       } else if (response.statusCode == 400) {
         // Conflict detected, show dialog with the conflict message
         final responseBody = jsonDecode(response.body);
@@ -123,6 +132,11 @@ class LabController extends GetxController {
             Future.delayed(Duration(milliseconds: 100), () {
               Get.snackbar("Cancelled", "Allotment process cancelled");
             });
+            clearAll(
+                  formKey: formKey,
+                  startDateController: startDateController,
+                  endDateController: endDateController,
+                );
           },
           onConfirm: () async {
             Get.back(); // Close the dialog before proceeding
@@ -141,8 +155,13 @@ class LabController extends GetxController {
               if (continueResponse.statusCode == 200 ||
                   continueResponse.statusCode == 201) {
                 getLabExternal();
-                update();
+                //update();
                 Get.snackbar("Saved", "Allotment Saved with Conflict");
+                clearAll(
+                  formKey: formKey,
+                  startDateController: startDateController,
+                  endDateController: endDateController,
+                );
               } else {
                 Get.snackbar("Error", "Failed to save data with conflict.");
               }
@@ -210,7 +229,12 @@ class LabController extends GetxController {
     }
   }
 
-  void formReset() {
+  void clearAll({
+    GlobalKey<FormState>? formKey,
+    TextEditingController? startDateController,
+    TextEditingController? endDateController,
+  }) {
+    // Reset formData values to empty strings (or defaults)
     formData.value = {
       "lab_name": "",
       "hours_allotted": "",
@@ -221,6 +245,14 @@ class LabController extends GetxController {
       "allot": "continue",
       "external": "external",
     };
-    update();
+
+    // Clear form UI if formKey provided
+    formKey?.currentState?.reset();
+
+    // Clear the date controllers if provided
+    startDateController?.clear();
+    endDateController?.clear();
+
+    update(); // notify listeners
   }
 }
