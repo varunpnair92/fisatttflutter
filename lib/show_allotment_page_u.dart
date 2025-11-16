@@ -1,6 +1,7 @@
 import 'package:fisat_timetable/api_controller.dart';
 import 'package:fisat_timetable/shared.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:fisat_timetable/lab_external.dart';
@@ -21,7 +22,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPageU> {
   @override
   void initState() {
     super.initState();
-     selectedDate = DateTime.now();
+    selectedDate = DateTime.now();
     examController.fetchLabExternal(); // ✅ Fetch normal allotments on load
   }
 
@@ -61,14 +62,15 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPageU> {
             onPressed: () async {
               DateTime now = DateTime.now();
               DateTime firstDate = DateTime(2025);
-              DateTime lastDate = DateTime(2025, 12, 31);
+              DateTime lastDate = DateTime(2095, 12, 31);
               DateTime? picked = await showDatePicker(
                 context: context,
-                initialDate: (selectedDate != null && selectedDate!.isBefore(lastDate))
-                    ? selectedDate!
-                    : now.isAfter(lastDate)
-                        ? lastDate
-                        : now,
+                initialDate:
+                    (selectedDate != null && selectedDate!.isBefore(lastDate))
+                        ? selectedDate!
+                        : now.isAfter(lastDate)
+                            ? lastDate
+                            : now,
                 firstDate: firstDate,
                 lastDate: lastDate,
               );
@@ -163,7 +165,23 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPageU> {
                   Text('Hours: ${allotment.hoursAllotted}'),
                 ],
               ),
-              
+
+              // ✅ LONG PRESS FUNCTION ADDED HERE
+              onLongPress: () {
+                String copyText = "Date: ${allotment.startDate}\n"
+                    "Lab: ${allotment.labName}\n"
+                    "Class: ${allotment.className}\n"
+                    "Subject: ${allotment.subjectName}\n"
+                    "Hours: ${allotment.hoursAllotted}";
+
+                // Copy to clipboard
+                Clipboard.setData(ClipboardData(text: copyText));
+
+                // Toast / SnackBar
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Copied to clipboard")),
+                );
+              },
             ),
           );
         },
@@ -178,9 +196,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPageU> {
         DateTime dateB = DateFormat('dd-MM-yyyy').parse(b.startDate);
         return dateB.compareTo(dateA); // Latest date first
       });
-    } catch (e) {
-      print('Error sorting dates: $e');
-    }
+    } catch (e) {}
     return allotments;
   }
 

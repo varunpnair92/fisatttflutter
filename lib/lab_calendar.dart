@@ -9,7 +9,7 @@ class LabCalendar extends StatefulWidget {
 class _LabCalendarState extends State<LabCalendar> {
   // Set our date range (whole year 2025)
   final DateTime firstDay = DateTime(2025, 1, 1);
-  final DateTime lastDay = DateTime(2025, 12, 31);
+  final DateTime lastDay = DateTime(2095, 12, 31);
 
   // Initialize focusedDay to today, but clamped to our range
   late DateTime focusedDay = _clampDate(DateTime.now());

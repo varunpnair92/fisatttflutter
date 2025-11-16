@@ -61,7 +61,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
             onPressed: () async {
               DateTime now = DateTime.now();
               DateTime firstDate = DateTime(2025);
-              DateTime lastDate = DateTime(2025, 12, 31);
+              DateTime lastDate = DateTime(2095, 12, 31);
               DateTime? picked = await showDatePicker(
                 context: context,
                 initialDate: (selectedDate != null && selectedDate!.isBefore(lastDate))
