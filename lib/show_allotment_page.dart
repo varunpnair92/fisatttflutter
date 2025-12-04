@@ -1,6 +1,7 @@
 import 'package:fisat_timetable/api_controller.dart';
 import 'package:fisat_timetable/shared.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:fisat_timetable/lab_external.dart';
@@ -8,6 +9,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ShowAllotmentPage extends StatefulWidget {
+  const ShowAllotmentPage({super.key});
+
   @override
   _ShowAllotmentPageState createState() => _ShowAllotmentPageState();
 }
@@ -21,7 +24,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
   @override
   void initState() {
     super.initState();
-     selectedDate = DateTime.now();
+    selectedDate = DateTime.now();
     examController.fetchLabExternal(); // ✅ Fetch normal allotments on load
   }
 
@@ -54,21 +57,22 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Lab Allotments'),
+        title: const Text('Lab Allotments'),
         actions: [
           IconButton(
-            icon: Icon(Icons.calendar_today),
+            icon: const Icon(Icons.calendar_today),
             onPressed: () async {
               DateTime now = DateTime.now();
               DateTime firstDate = DateTime(2025);
               DateTime lastDate = DateTime(2095, 12, 31);
               DateTime? picked = await showDatePicker(
                 context: context,
-                initialDate: (selectedDate != null && selectedDate!.isBefore(lastDate))
-                    ? selectedDate!
-                    : now.isAfter(lastDate)
-                        ? lastDate
-                        : now,
+                initialDate:
+                    (selectedDate != null && selectedDate!.isBefore(lastDate))
+                        ? selectedDate!
+                        : now.isAfter(lastDate)
+                            ? lastDate
+                            : now,
                 firstDate: firstDate,
                 lastDate: lastDate,
               );
@@ -86,7 +90,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
           ),
           Row(
             children: [
-              Text('Show Free Slots'),
+              const Text('Show Free Slots'),
               Checkbox(
                 value: isCheckBoxChecked,
                 onChanged: (bool? value) {
@@ -111,7 +115,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
 
   Widget _buildFreeLabSlotsView() {
     if (freeLabSlots.isEmpty) {
-      return Center(child: Text('No free lab slots available'));
+      return const Center(child: Text('No free lab slots available'));
     }
 
     return ListView.builder(
@@ -119,7 +123,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
       itemBuilder: (context, index) {
         final slot = freeLabSlots[index];
         return Card(
-          margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
           child: ListTile(
             title: Text('Lab: ${slot["lab_name"]}'),
             subtitle: Text('Free Hours: ${slot["hours_free"]}'),
@@ -132,7 +136,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
   Widget _buildAllotmentsView() {
     return Obx(() {
       if (examController.apiData.isEmpty) {
-        return Center(child: Text('No allotments available'));
+        return const Center(child: Text('No allotments available'));
       }
 
       List<Labexternal> sortedAllotments =
@@ -141,7 +145,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
           _filterAllotmentsByDate(sortedAllotments);
 
       if (filteredAllotments.isEmpty) {
-        return Center(
+        return const Center(
             child: Text('No allotments available for the selected date'));
       }
 
@@ -150,9 +154,9 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
         itemBuilder: (context, index) {
           final allotment = filteredAllotments[index];
           return Card(
-            margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
             child: ListTile(
-              contentPadding: EdgeInsets.all(16.0),
+              contentPadding: const EdgeInsets.all(16.0),
               title: Text('Date: ${allotment.startDate}'),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,8 +167,23 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
                   Text('Hours: ${allotment.hoursAllotted}'),
                 ],
               ),
+              onLongPress: () {
+                String copyText = "Date: ${allotment.startDate}\n"
+                    "Lab: ${allotment.labName}\n"
+                    "Class: ${allotment.className}\n"
+                    "Subject: ${allotment.subjectName}\n"
+                    "Hours: ${allotment.hoursAllotted}";
+
+                // Copy to clipboard
+                Clipboard.setData(ClipboardData(text: copyText));
+
+                // Toast / SnackBar
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Copied to clipboard")),
+                );
+              },
               trailing: IconButton(
-                icon: Icon(Icons.delete, color: Colors.red),
+                icon: const Icon(Icons.delete, color: Colors.red),
                 onPressed: () {
                   print("Delete button clicked for ID: ${allotment.id}");
                   _showDeleteConfirmationDialog(allotment.id);
@@ -193,11 +212,11 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
   List<Labexternal> _filterAllotmentsByDate(List<Labexternal> allotments) {
     if (selectedDate == null) return allotments;
     return allotments.where((allotment) {
-  DateTime start = DateFormat('dd-MM-yyyy').parse(allotment.startDate);
-  DateTime end = DateFormat('dd-MM-yyyy').parse(allotment.endDate);
-  return selectedDate!.isAfter(start.subtract(Duration(days: 1))) &&
-         selectedDate!.isBefore(end.add(Duration(days: 1)));
-}).toList();
+      DateTime start = DateFormat('dd-MM-yyyy').parse(allotment.startDate);
+      DateTime end = DateFormat('dd-MM-yyyy').parse(allotment.endDate);
+      return selectedDate!.isAfter(start.subtract(const Duration(days: 1))) &&
+          selectedDate!.isBefore(end.add(const Duration(days: 1)));
+    }).toList();
   }
 
   void _showDeleteConfirmationDialog(int id) {
