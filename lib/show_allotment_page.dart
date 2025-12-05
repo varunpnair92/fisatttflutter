@@ -27,7 +27,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
   @override
   void initState() {
     super.initState();
-    examController.getData(); // 🔥 FIXED: Use getData() so apiData updates
+    examController.getData(); // Fetch initial data
   }
 
   // ---------------------------
@@ -60,7 +60,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
   // Refresh page
   // ---------------------------
   void refreshPage() async {
-    await examController.getData(); // 🔥 FIXED: refresh updates apiData
+    await examController.getData();
     setState(() {
       selectedIds.clear();
     });
@@ -90,17 +90,19 @@ Hours: ${a.hoursAllotted}
   void _copySelected() {
     if (selectedIds.isEmpty) return;
 
-    List<Labexternal> dataList = examController.apiData;
-    List<Labexternal> selected =
-        dataList.where((a) => selectedIds.contains(a.id)).toList();
+    List<Labexternal> selected = examController.apiData
+        .where((a) => selectedIds.contains(a.id))
+        .toList();
 
-    String combined = selected.map((a) => """
+    String combined = selected
+        .map((a) => """
 Date: ${a.startDate}
 Lab: ${a.labName}
 Class: ${a.className}
 Subject: ${a.subjectName}
 Hours: ${a.hoursAllotted}
-""").join("\n-------------------------\n");
+""")
+        .join("\n-------------------------\n");
 
     Clipboard.setData(ClipboardData(text: combined.trim()));
     Get.snackbar("Copied", "${selected.length} items copied",
@@ -131,7 +133,7 @@ Hours: ${a.hoursAllotted}
   }
 
   // ---------------------------
-  // Sorting helper
+  // Sorting helper (descending by date)
   // ---------------------------
   List<Labexternal> _sort(List<Labexternal> list) {
     try {
@@ -160,17 +162,23 @@ Hours: ${a.hoursAllotted}
     }).toList();
   }
 
+  // ========================================================================
+  // UI
+  // ========================================================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Lab Allotments"),
         actions: [
+          // 🔄 Refresh button
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: "Reload",
             onPressed: refreshPage,
           ),
+
+          // 📅 Date picker
           IconButton(
             icon: const Icon(Icons.calendar_today),
             tooltip: "Pick Date",
@@ -187,10 +195,32 @@ Hours: ${a.hoursAllotted}
               }
             },
           ),
+
+          // 🟩 SHOW FREE SLOTS TOGGLE (RESTORED)
+          Row(
+            children: [
+              const Text("Show Free Slots"),
+              Checkbox(
+                value: isCheckBoxChecked,
+                onChanged: (v) {
+                  setState(() {
+                    isCheckBoxChecked = v ?? false;
+                    if (isCheckBoxChecked)
+                      fetchFreeLabSlots();
+                    else
+                      freeLabSlots.clear();
+                  });
+                },
+              ),
+            ],
+          ),
         ],
       ),
-      body:
-          isCheckBoxChecked ? _buildFreeLabSlotsView() : _buildAllotmentsView(),
+
+      body: isCheckBoxChecked
+          ? _buildFreeLabSlotsView()
+          : _buildAllotmentsView(),
+
       floatingActionButton: selectedIds.isNotEmpty
           ? FloatingActionButton.extended(
               icon: const Icon(Icons.copy),
@@ -246,8 +276,9 @@ Hours: ${a.hoursAllotted}
           final allot = filtered[index];
 
           return Card(
-            color: selectedIds.contains(allot.id) ? Colors.blue.shade50 : null,
             margin: const EdgeInsets.all(8),
+            color:
+                selectedIds.contains(allot.id) ? Colors.blue.shade50 : null,
             child: ListTile(
               leading: Checkbox(
                 value: selectedIds.contains(allot.id),
