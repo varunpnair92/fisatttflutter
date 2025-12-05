@@ -4,37 +4,21 @@ import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-
 import 'lab_controller.dart';
 
 class DailyGridPdfGenerator {
-  // BACKEND LAB NAMES (MUST MATCH API RESPONSE)
   static final List<String> labOrder = [
-    'L1',
-    'L2',
-    'L3',
-    'L4',
-    'L5',
-    'L6',
-    'L7',
-    'L8',
-    'L9',
-    'MICRO PROCESSOR LAB',
-    'PG LAB'
+    "L1","L2","L3","L4","L5","L6","L7","L8","L9",
+    "MICRO PROCESSOR LAB","PG LAB",
   ];
 
-  // DISPLAY NAMES FOR PDF (SHORT NAMES)
   static final Map<String, String> displayName = {
     "MICRO PROCESSOR LAB": "MP",
-    "PG LAB": "PG",
+    "PG LAB": "PG"
   };
 
-  // HOUR COLUMNS
-  static final List<String> hours = [
-    'H1', 'H2', 'H3', 'H4', 'LB', 'H5', 'H6', 'H7'
-  ];
+  static final List<String> uiHours = ["H1","H2","H3","H4","LB","H5","H6","H7"];
 
-  // MAP UI hours → backend numbers
   static final Map<String, String> hourNum = {
     "H1": "1",
     "H2": "2",
@@ -50,150 +34,217 @@ class DailyGridPdfGenerator {
     required DateTime date,
     required LabController labController,
   }) async {
+
     final pdf = pw.Document();
     final df = DateFormat("dd-MM-yyyy");
+
     final formattedDate = df.format(date);
+    final labMap = labController.labAllotments;
 
-    // BUILD TABLE EXACTLY LIKE UI
+    // Build our lookup map
     Map<String, Map<String, Map<String, dynamic>>> table = {};
-
     for (var lab in labOrder) {
       table[lab] = {};
+      var entries = (labMap[lab] ?? []).cast<Map<String, dynamic>>();
 
-      final entries =
-          (labController.labAllotments[lab] ?? []).cast<Map<String, dynamic>>();
-
-      for (var entry in entries) {
-        // API returns only ONE hour per entry → "hours": "3"
-        final hr = entry["hours"]?.toString().trim();
-
+      for (var e in entries) {
+        final hr = e["hours"]?.toString();
         if (hr != null && hr.isNotEmpty) {
-          table[lab]![hr] = entry;
+          table[lab]![hr] = e;
         }
       }
     }
 
-    final freeColor = PdfColor.fromInt(0xFFD3D3D3); // grey
-    final allotColor = PdfColor.fromInt(0xFF90EE90); // green
+    final pageWidth = PdfPageFormat.a4.landscape.width - 20;  
+    final labColWidth = 55.0; 
+    final remaining = pageWidth - labColWidth;
 
-    final titleStyle =
-        pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold);
-    final headerStyle =
-        pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold);
+    // Force hour width integer for stability
+    final hourWidth = (remaining / uiHours.length).floorToDouble();
+    final lastHourWidth = remaining - hourWidth * (uiHours.length - 1);
+
+    final freeColor = PdfColor.fromInt(0xFFD3D3D3);
+    final greenColor = PdfColor.fromInt(0xFF90EE90);
+    final redColor = PdfColor.fromInt(0xFFFFA0A0);
+
+    final headerStyle = pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold);
     final cellStyle = pw.TextStyle(fontSize: 9);
 
+    // Build PDF Page
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4.landscape,
         margin: pw.EdgeInsets.all(10),
-        build: (ctx) {
+        build: (pw.Context ctx) {
           return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // 🔥 MERGED HEADER
+
               pw.Container(
                 width: double.infinity,
-                padding: pw.EdgeInsets.symmetric(vertical: 8),
+                padding: pw.EdgeInsets.all(8),
                 decoration: pw.BoxDecoration(border: pw.Border.all(width: 1)),
                 alignment: pw.Alignment.center,
-                child: pw.Text("DAILY LAB ALLOTMENT", style: titleStyle),
+                child: pw.Text("DAILY LAB ALLOTMENT", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
               ),
 
-              pw.SizedBox(height: 4),
+              pw.SizedBox(height: 5),
               pw.Text("Date: $formattedDate", style: headerStyle),
-              pw.SizedBox(height: 10),
 
-              // 🔥 GRID TABLE
-              pw.Table(
-                border: pw.TableBorder.all(),
+              pw.SizedBox(height: 8),
+
+              // HEADER ROW
+              pw.Row(
                 children: [
-                  // HEADER ROW
-                  pw.TableRow(
-                    children: [
-                      pw.Container(
-                        height: 32,
-                        alignment: pw.Alignment.center,
-                        child: pw.Text("LAB", style: headerStyle),
-                      ),
-                      ...hours.map((h) => pw.Container(
-                            height: 32,
-                            alignment: pw.Alignment.center,
-                            child: pw.Text(h, style: headerStyle),
-                          )),
-                    ],
+                  pw.Container(
+                    width: labColWidth,
+                    height: 32,
+                    alignment: pw.Alignment.center,
+                    decoration: pw.BoxDecoration(border: pw.Border.all()),
+                    child: pw.Text("LAB", style: headerStyle),
                   ),
-
-                  // DATA ROWS
-                  ...labOrder.map((lab) {
-                    return pw.TableRow(
-                      children: [
-                        // LAB NAME COLUMN
-                        pw.Container(
-                          height: 32,
-                          alignment: pw.Alignment.center,
-                          child: pw.Text(
-                            displayName[lab] ?? lab, // SHORT DISPLAY NAME
-                            style: headerStyle,
-                          ),
-                        ),
-
-                        // HOUR CELLS
-                        ...hours.map((hr) {
-                          String hrKey = hourNum[hr]!;
-                          final allot = table[lab]![hrKey];
-
-                          if (allot == null) {
-                            // FREE
-                            return pw.Container(
-                              height: 32,
-                              alignment: pw.Alignment.center,
-                              color: freeColor,
-                              child: pw.Text(""),
-                            );
-                          }
-
-                          // ALLOTTED
-                          final subject = allot["subject_name"] ?? "";
-                          final cls = allot["class_name"] ?? "";
-
-                          return pw.Container(
-                            height: 32,
-                            alignment: pw.Alignment.center,
-                            padding: pw.EdgeInsets.all(3),
-                            color: allotColor,
-                            child: pw.Text(
-                              "$subject\n$cls",
-                              style: cellStyle,
-                              textAlign: pw.TextAlign.center,
-                            ),
-                          );
-                        }),
-                      ],
+                  ...List.generate(uiHours.length, (i) {
+                    final w = (i == uiHours.length - 1) ? lastHourWidth : hourWidth;
+                    return pw.Container(
+                      width: w,
+                      height: 32,
+                      alignment: pw.Alignment.center,
+                      decoration: pw.BoxDecoration(border: pw.Border.all()),
+                      child: pw.Text(uiHours[i], style: headerStyle),
                     );
                   }),
                 ],
               ),
 
-              pw.SizedBox(height: 8),
+              pw.SizedBox(height: 2),
 
-              pw.Align(
-                alignment: pw.Alignment.centerRight,
-                child: pw.Text(
-                  "Generated by FISAT Timetable",
-                  style: pw.TextStyle(
-                      fontSize: 8, color: PdfColor.fromInt(0xFF777777)),
-                ),
-              ),
+              // DATA ROWS
+              ...labOrder.map((lab) {
+                return _buildLabRow(
+                  lab: lab,
+                  table: table[lab]!,
+                  labColWidth: labColWidth,
+                  hourWidth: hourWidth,
+                  lastHourWidth: lastHourWidth,
+                  freeColor: freeColor,
+                  greenColor: greenColor,
+                  redColor: redColor,
+                  headerStyle: headerStyle,
+                  cellStyle: cellStyle,
+                );
+              }),
             ],
           );
         },
       ),
     );
 
-    // SAVE FILE
+    // SAVE & OPEN
     final dir = await getApplicationDocumentsDirectory();
-    final file = File("${dir.path}/lab_allotment_${formattedDate}.pdf");
-
+    final file = File("${dir.path}/daily_lab_${formattedDate}.pdf");
     await file.writeAsBytes(await pdf.save());
     await OpenFile.open(file.path);
+  }
+
+  static pw.Widget _buildLabRow({
+    required String lab,
+    required Map<String, dynamic> table,
+    required double labColWidth,
+    required double hourWidth,
+    required double lastHourWidth,
+    required PdfColor freeColor,
+    required PdfColor greenColor,
+    required PdfColor redColor,
+    required pw.TextStyle headerStyle,
+    required pw.TextStyle cellStyle,
+  }) {
+
+    List<String> hourOrder = ["1","2","3","4","8","5","6","7"];
+
+    List<pw.Widget> cells = [];
+
+    // LAB NAME
+    cells.add(
+      pw.Container(
+        width: labColWidth,
+        height: 34,
+        alignment: pw.Alignment.center,
+        decoration: pw.BoxDecoration(border: pw.Border.all()),
+        child: pw.Text(displayName[lab] ?? lab, style: headerStyle),
+      ),
+    );
+
+    int i = 0;
+    while (i < hourOrder.length) {
+      final hr = hourOrder[i];
+      final entry = table[hr];
+
+      final baseWidth = (i == hourOrder.length - 1) ? lastHourWidth : hourWidth;
+
+      if (entry == null) {
+        cells.add(_freeCell(baseWidth, freeColor));
+        i++;
+        continue;
+      }
+
+      // MERGE LOGIC
+      final subj = entry["subject_name"] ?? "";
+      final cls = entry["class_name"] ?? "";
+      final ext = entry["external"]?.toString()?.toLowerCase() ?? "no";
+
+      final PdfColor color = (ext == "external" || ext == "yes")
+          ? redColor
+          : greenColor;
+
+      int span = 1;
+      int j = i + 1;
+
+      while (j < hourOrder.length) {
+        final next = table[hourOrder[j]];
+        if (next == null) break;
+
+        if (next["subject_name"] == subj &&
+            next["class_name"] == cls &&
+            next["external"].toString().toLowerCase() == ext) {
+          span++;
+          j++;
+        } else break;
+      }
+
+      // Compute merged width EXACT integer
+      double mergedWidth = 0;
+      for (int k = i; k < j; k++) {
+        mergedWidth += (k == hourOrder.length - 1) ? lastHourWidth : hourWidth;
+      }
+
+      cells.add(
+        pw.Container(
+          width: mergedWidth,
+          height: 34,
+          alignment: pw.Alignment.center,
+          decoration: pw.BoxDecoration(border: pw.Border.all(), color: color),
+          padding: pw.EdgeInsets.all(3),
+          child: pw.Text(
+            "$subj\n$cls",
+            style: cellStyle,
+            textAlign: pw.TextAlign.center,
+          ),
+        ),
+      );
+
+      i = j;
+    }
+
+    return pw.Row(children: cells);
+  }
+
+  static pw.Widget _freeCell(double width, PdfColor color) {
+    return pw.Container(
+      width: width,
+      height: 34,
+      alignment: pw.Alignment.center,
+      decoration: pw.BoxDecoration(border: pw.Border.all(), color: color),
+      child: pw.Text(""),
+    );
   }
 }

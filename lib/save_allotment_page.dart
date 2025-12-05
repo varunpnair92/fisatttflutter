@@ -187,20 +187,25 @@ class SaveAllotmentPage extends StatelessWidget {
               SizedBox(height: 20),
 
               // Generate Report Button
-              ElevatedButton(
-                onPressed: () async {
-                  if (_startDateController.text.isNotEmpty) {
-                    await labController.fetchLabAllotmentsForRange(
-                      DateFormat('dd-MM-yyyy').parse(_startDateController.text),
-                      DateFormat('dd-MM-yyyy').parse(_endDateController.text),
-                    );
-                    Get.to(LabAllotmentsReport());
-                  } else {
-                    Get.snackbar('Error', 'Please select a start date first.');
-                  }
-                },
-                child: Text('Generate Report'),
-              ),
+              Row(
+                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (_startDateController.text.isNotEmpty) {
+                        await labController.fetchLabAllotmentsForRange(
+                          DateFormat('dd-MM-yyyy').parse(_startDateController.text),
+                          DateFormat('dd-MM-yyyy').parse(_endDateController.text),
+                        );
+                        Get.to(LabAllotmentsReport());
+                      } else {
+                        Get.snackbar('Error', 'Please select a start date first.');
+                      }
+                    },
+                    child: Text('Generate Report'),
+                  ),
+                
+              
               ElevatedButton(
                 onPressed: () async {
                   if (_startDateController.text.isEmpty) {
@@ -221,6 +226,7 @@ class SaveAllotmentPage extends StatelessWidget {
                 child: Text("Generate Daily PDF"),
               ),
             ],
+          ),],
           ),
         ),
       ),
