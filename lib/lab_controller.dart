@@ -13,6 +13,7 @@ class LabController extends GetxController {
   var labAllotments = <String, List<Map<String, dynamic>>>{}.obs;
   var labAllotments2 = <Labexternal>[].obs;
   var labAllotmentsR = <String, List<Map<String, dynamic>>>{}.obs;
+  var apiData = <Labexternal>[].obs;
 
   var formData = <String, String>{
     "lab_name": "",
@@ -133,10 +134,10 @@ class LabController extends GetxController {
               Get.snackbar("Cancelled", "Allotment process cancelled");
             });
             clearAll(
-                  formKey: formKey,
-                  startDateController: startDateController,
-                  endDateController: endDateController,
-                );
+              formKey: formKey,
+              startDateController: startDateController,
+              endDateController: endDateController,
+            );
           },
           onConfirm: () async {
             Get.back(); // Close the dialog before proceeding
@@ -191,6 +192,7 @@ class LabController extends GetxController {
 
       List bodyjosn = jsonDecode(response.body);
       return bodyjosn.map((e) => Labexternal.fromJson(e)).toList();
+      
     } else {
       return null;
     }
