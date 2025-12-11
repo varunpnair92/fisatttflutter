@@ -60,7 +60,7 @@ class LabAllotmentPage extends StatelessWidget {
       'L8',
       'L9',
       'MP',
-      'PG'
+      'PG LAB',
     ];
     final hours = ['H1', 'H2', 'H3', 'H4', 'LB', 'H5', 'H6', 'H7'];
     final dayNames = [
@@ -96,7 +96,7 @@ class LabAllotmentPage extends StatelessWidget {
                     height: 40,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(border: Border.all()),
-                    child: Text(lab),
+                    child: Text( lab == "PG LAB" ? "PG" : lab,),
                   )),
             ],
           ),

@@ -94,15 +94,13 @@ Hours: ${a.hoursAllotted}
         .where((a) => selectedIds.contains(a.id))
         .toList();
 
-    String combined = selected
-        .map((a) => """
+    String combined = selected.map((a) => """
 Date: ${a.startDate}
 Lab: ${a.labName}
 Class: ${a.className}
 Subject: ${a.subjectName}
 Hours: ${a.hoursAllotted}
-""")
-        .join("\n-------------------------\n");
+""").join("\n-------------------------\n");
 
     Clipboard.setData(ClipboardData(text: combined.trim()));
     Get.snackbar("Copied", "${selected.length} items copied",
@@ -216,11 +214,8 @@ Hours: ${a.hoursAllotted}
           ),
         ],
       ),
-
-      body: isCheckBoxChecked
-          ? _buildFreeLabSlotsView()
-          : _buildAllotmentsView(),
-
+      body:
+          isCheckBoxChecked ? _buildFreeLabSlotsView() : _buildAllotmentsView(),
       floatingActionButton: selectedIds.isNotEmpty
           ? FloatingActionButton.extended(
               icon: const Icon(Icons.copy),
@@ -277,8 +272,7 @@ Hours: ${a.hoursAllotted}
 
           return Card(
             margin: const EdgeInsets.all(8),
-            color:
-                selectedIds.contains(allot.id) ? Colors.blue.shade50 : null,
+            color: selectedIds.contains(allot.id) ? Colors.blue.shade50 : null,
             child: ListTile(
               leading: Checkbox(
                 value: selectedIds.contains(allot.id),
@@ -298,7 +292,8 @@ Hours: ${a.hoursAllotted}
                   Text("Lab: ${allot.labName}"),
                   Text("Class: ${allot.className}"),
                   Text("Subject: ${allot.subjectName}"),
-                  Text("Hours: ${allot.hoursAllotted}"),
+                  Text(
+                      "Hours: ${allot.hoursAllotted.split(',').map((h) => h.trim() == '8' ? 'LB' : h.trim()).join(',')}"),
                 ],
               ),
               trailing: IconButton(

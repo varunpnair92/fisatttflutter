@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class HomePageU extends StatelessWidget {
+  const HomePageU({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,7 +25,7 @@ class HomePageU extends StatelessWidget {
         onTap: (index) {
           Get.find<HomeController>().currentIndex.value = index;
         },
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
             label: 'Lab Allotment',

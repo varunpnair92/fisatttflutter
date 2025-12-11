@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'allotment_page.dart';
 
 class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,7 +25,7 @@ class HomePage extends StatelessWidget {
         onTap: (index) {
           Get.find<HomeController>().currentIndex.value = index;
         },
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
             label: 'Lab Allotment',
