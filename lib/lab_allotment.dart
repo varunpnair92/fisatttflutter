@@ -2,7 +2,7 @@ import 'package:fisat_timetable/lab_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart'; // Import intl package
+import 'package:intl/intl.dart';
 
 class LabAllotmentPage extends StatelessWidget {
   final LabController labController = Get.put(LabController());
@@ -10,11 +10,7 @@ class LabAllotmentPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
-      
-      
       body: Column(
-        
         children: <Widget>[
           SizedBox(height: 35),
           Obx(() {
@@ -41,7 +37,8 @@ class LabAllotmentPage extends StatelessWidget {
           }),
           Expanded(
             child: Obx(
-                () => _buildAllotmentTable(labController.selectedDate.value)),
+              () => _buildAllotmentTable(labController.selectedDate.value),
+            ),
           ),
         ],
       ),
@@ -62,7 +59,9 @@ class LabAllotmentPage extends StatelessWidget {
       'MP',
       'PG LAB',
     ];
+
     final hours = ['H1', 'H2', 'H3', 'H4', 'LB', 'H5', 'H6', 'H7'];
+
     final dayNames = [
       'Monday',
       'Tuesday',
@@ -72,6 +71,7 @@ class LabAllotmentPage extends StatelessWidget {
       'Saturday',
       'Sunday'
     ];
+
     final dayString = dayNames[selectedDate.weekday - 1];
     final DateFormat dateFormat = DateFormat('dd-MM-yyyy');
 
@@ -80,7 +80,7 @@ class LabAllotmentPage extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Fixed lab name column
+          // LAB COLUMN
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -96,32 +96,34 @@ class LabAllotmentPage extends StatelessWidget {
                     height: 40,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(border: Border.all()),
-                    child: Text( lab == "PG LAB" ? "PG" : lab,),
+                    child: Text(lab == "PG LAB" ? "PG" : lab),
                   )),
             ],
           ),
 
-          // Scrollable hour table
+          // SCROLLABLE TABLE
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Hours header
+                  // HOURS HEADER
                   Row(
                     children: hours
-                        .map((hour) => Container(
-                              width: 60,
-                              height: 40,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(border: Border.all()),
-                              child: Text(hour),
-                            ))
+                        .map(
+                          (hour) => Container(
+                            width: 60,
+                            height: 40,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(border: Border.all()),
+                            child: Text(hour),
+                          ),
+                        )
                         .toList(),
                   ),
 
-                  // Data rows
+                  // DATA ROWS
                   ...labs.map((lab) {
                     final labEntries = labController.labAllotments[lab] ?? [];
 
@@ -131,14 +133,15 @@ class LabAllotmentPage extends StatelessWidget {
                             dateFormat.parse(entry['start_date'] ?? '');
                         final endDate =
                             dateFormat.parse(entry['end_date'] ?? '');
-                        bool dateInRange = selectedDate.isAfter(
-                                startDate.subtract(Duration(days: 1))) &&
-                            selectedDate
-                                .isBefore(endDate.add(Duration(days: 1)));
+                        bool dateInRange =
+                            selectedDate.isAfter(startDate.subtract(
+                                    Duration(days: 1))) &&
+                                selectedDate
+                                    .isBefore(endDate.add(Duration(days: 1)));
                         bool correctDay = entry['day'] == dayString;
                         return dateInRange && correctDay;
                       } catch (e) {
-                        print('Date parsing error: $e');
+                        print("Date error: $e");
                         return false;
                       }
                     }).toList();
@@ -155,6 +158,10 @@ class LabAllotmentPage extends StatelessWidget {
                           return entryHours?.contains(mappedHour) ?? false;
                         }).toList();
 
+                        // NEW: check external allotment
+                        final isExternal = matchingEntries
+                            .any((e) => e['external'] == 'external');
+
                         final cellContent = matchingEntries.isNotEmpty
                             ? matchingEntries
                                 .map((entry) =>
@@ -168,8 +175,12 @@ class LabAllotmentPage extends StatelessWidget {
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             border: Border.all(),
+
+                            // NEW COLORING RULE
                             color: matchingEntries.isNotEmpty
-                                ? Colors.blue[100]
+                                ? (isExternal
+                                    ? Colors.green[200] // external → green
+                                    : Colors.blue[100]) // normal → blue
                                 : null,
                           ),
                           child: Text(cellContent),
