@@ -13,15 +13,15 @@ class LabAllotmentPage extends StatelessWidget {
       body: Column(
         children: <Widget>[
           SizedBox(height: 35),
+
           Obx(() {
             return TableCalendar(
               firstDay: DateTime.utc(2025, 1, 1),
               lastDay: DateTime.utc(2095, 12, 31),
               focusedDay: labController.selectedDate.value,
               calendarFormat: labController.calendarFormat.value,
-              selectedDayPredicate: (day) {
-                return isSameDay(labController.selectedDate.value, day);
-              },
+              selectedDayPredicate: (day) =>
+                  isSameDay(labController.selectedDate.value, day),
               onDaySelected: (selectedDay, focusedDay) {
                 labController.selectDate(selectedDay);
               },
@@ -35,61 +35,48 @@ class LabAllotmentPage extends StatelessWidget {
               },
             );
           }),
+
           Expanded(
-            child: Obx(
-              () => _buildAllotmentTable(labController.selectedDate.value),
-            ),
+            child: Obx(() =>
+                _buildAllotmentTable(labController.selectedDate.value)),
           ),
         ],
       ),
     );
   }
 
+  // ===========================
+  //    TABLE UI WITH MERGING
+  // ===========================
   Widget _buildAllotmentTable(DateTime selectedDate) {
     final labs = [
-      'L1',
-      'L2',
-      'L3',
-      'L4',
-      'L5',
-      'L6',
-      'L7',
-      'L8',
-      'L9',
-      'MP',
-      'PG LAB',
+      'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'MP', 'PG LAB'
     ];
 
     final hours = ['H1', 'H2', 'H3', 'H4', 'LB', 'H5', 'H6', 'H7'];
 
     final dayNames = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday'
+      'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+      'Friday', 'Saturday', 'Sunday'
     ];
 
     final dayString = dayNames[selectedDate.weekday - 1];
-    final DateFormat dateFormat = DateFormat('dd-MM-yyyy');
+    final df = DateFormat('dd-MM-yyyy');
 
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // LAB COLUMN
+          // LEFT COLUMN : LAB NAMES
           Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 width: 60,
                 height: 40,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(border: Border.all()),
-                child: Text('Lab'),
+                child: Text("Lab"),
               ),
               ...labs.map((lab) => Container(
                     width: 60,
@@ -101,7 +88,7 @@ class LabAllotmentPage extends StatelessWidget {
             ],
           ),
 
-          // SCROLLABLE TABLE
+          // MAIN TABLE
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -111,79 +98,110 @@ class LabAllotmentPage extends StatelessWidget {
                   // HOURS HEADER
                   Row(
                     children: hours
-                        .map(
-                          (hour) => Container(
-                            width: 60,
-                            height: 40,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(border: Border.all()),
-                            child: Text(hour),
-                          ),
-                        )
+                        .map((h) => Container(
+                              width: 60,
+                              height: 40,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(border: Border.all()),
+                              child: Text(h),
+                            ))
                         .toList(),
                   ),
 
-                  // DATA ROWS
+                  // ROW FOR EACH LAB
                   ...labs.map((lab) {
-                    final labEntries = labController.labAllotments[lab] ?? [];
+                    final labEntries =
+                        labController.labAllotments[lab] ?? [];
 
+                    // FILTER VALID DAY ENTRIES
                     final dayEntries = labEntries.where((entry) {
                       try {
-                        final startDate =
-                            dateFormat.parse(entry['start_date'] ?? '');
-                        final endDate =
-                            dateFormat.parse(entry['end_date'] ?? '');
-                        bool dateInRange =
-                            selectedDate.isAfter(startDate.subtract(
-                                    Duration(days: 1))) &&
-                                selectedDate
-                                    .isBefore(endDate.add(Duration(days: 1)));
-                        bool correctDay = entry['day'] == dayString;
-                        return dateInRange && correctDay;
-                      } catch (e) {
-                        print("Date error: $e");
+                        final s = df.parse(entry['start_date']);
+                        final e = df.parse(entry['end_date']);
+                        bool inRange =
+                            selectedDate.isAfter(s.subtract(Duration(days: 1))) &&
+                            selectedDate.isBefore(e.add(Duration(days: 1)));
+
+                        return inRange && entry['day'] == dayString;
+                      } catch (_) {
                         return false;
                       }
                     }).toList();
 
+                    // ========================
+                    //     MERGE HOURS
+                    // ========================
+                    final Map<String, List<int>> mergedGroups = {};
+
+                    for (var e in dayEntries) {
+                      String key =
+                          "${e['class_name']}|${e['subject_name']}|${e['external']}|${e['start_date']}|${e['end_date']}";
+
+                      int hr = int.tryParse(e['hours'] ?? '') ?? -1;
+
+                      if (!mergedGroups.containsKey(key)) {
+                        mergedGroups[key] = [];
+                      }
+                      mergedGroups[key]!.add(hr);
+                    }
+
+                    final mergedSlots = mergedGroups.entries.map((slot) {
+                      final hoursList = slot.value..sort();
+                      final parts = slot.key.split("|");
+
+                      return {
+                        "class": parts[0],
+                        "subject": parts[1],
+                        "external": parts[2],
+                        "start": parts[3],
+                        "end": parts[4],
+                        "hours": hoursList,
+                      };
+                    }).toList();
+
+                    // ========================
+                    //     BUILD ROW CELLS
+                    // ========================
                     return Row(
-                      children: hours.map((hour) {
-                        final mappedHour =
-                            hour == 'LB' ? '8' : hour.replaceFirst('H', '');
-                        final matchingEntries = dayEntries.where((entry) {
-                          final entryHours = entry['hours']
-                              ?.split(',')
-                              .map((e) => e.trim())
-                              .toList();
-                          return entryHours?.contains(mappedHour) ?? false;
-                        }).toList();
+                      children: hours.map((hrText) {
+                        final mapped = (hrText == "LB")
+                            ? 8
+                            : int.tryParse(hrText.replaceFirst("H", "")) ?? -1;
 
-                        // NEW: check external allotment
-                        final isExternal = matchingEntries
-                            .any((e) => e['external'] == 'external');
+                        // FIND SLOT
+                        Map<String, Object> found = mergedSlots.firstWhere(
+                          (s) => (s["hours"] as List).contains(mapped),
+                          orElse: () => {},
+                        );
 
-                        final cellContent = matchingEntries.isNotEmpty
-                            ? matchingEntries
-                                .map((entry) =>
-                                    '${entry['class_name']} - ${entry['subject_name']}')
-                                .join('\n')
-                            : '';
+                        if (found.isEmpty) {
+                          return emptyCell();
+                        }
+
+                        final hoursList = found["hours"] as List<int>;
+                        final isStart = hoursList.first == mapped;
+
+                        if (!isStart) {
+                          return Container(width: 0, height: 40);
+                        }
+
+                        final span = hoursList.length;
 
                         return Container(
-                          width: 60,
+                          width: 60.0 * span,
                           height: 40,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             border: Border.all(),
-
-                            // NEW COLORING RULE
-                            color: matchingEntries.isNotEmpty
-                                ? (isExternal
-                                    ? Colors.green[200] // external → green
-                                    : Colors.blue[100]) // normal → blue
-                                : null,
+                            color: found["external"] == "external"
+                                ? Colors.green[300]
+                                : Colors.blue[200],
                           ),
-                          child: Text(cellContent),
+                          child: Text(
+                            "${found['class']} - ${found['subject']}",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 12),
+                          ),
                         );
                       }).toList(),
                     );
@@ -194,6 +212,15 @@ class LabAllotmentPage extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget emptyCell() {
+    return Container(
+      width: 60,
+      height: 40,
+      decoration: BoxDecoration(border: Border.all()),
+      child: const Text(""),
     );
   }
 }
