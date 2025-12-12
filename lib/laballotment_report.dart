@@ -27,7 +27,17 @@ class _LabAllotmentsReportState extends State<LabAllotmentsReport> {
   final LabController labController = Get.find();
 
   final List<String> labOrder = [
-    'L1','L2','L3','L4','L5','L6','L7','L8','L9','MICRO PROCESSOR LAB','PG LAB'
+    'L1',
+    'L2',
+    'L3',
+    'L4',
+    'L5',
+    'L6',
+    'L7',
+    'L8',
+    'L9',
+    'MICRO PROCESSOR LAB',
+    'PG LAB'
   ];
 
   Map<String, Map<String, List<Map<String, dynamic>>>> reportData = {};
@@ -44,8 +54,8 @@ class _LabAllotmentsReportState extends State<LabAllotmentsReport> {
   List<Map<String, dynamic>> mergeHours(List<Map<String, dynamic>> list) {
     if (list.isEmpty) return [];
 
-    list.sort((a, b) =>
-        int.parse(a['hours'].toString()).compareTo(int.parse(b['hours'].toString())));
+    list.sort((a, b) => int.parse(a['hours'].toString())
+        .compareTo(int.parse(b['hours'].toString())));
 
     List<Map<String, dynamic>> merged = [];
 
@@ -61,7 +71,9 @@ class _LabAllotmentsReportState extends State<LabAllotmentsReport> {
       String cls = item['class_name'];
 
       // Continue block
-      if (subj == currentSubject && cls == currentClass && hour == endHour + 1) {
+      if (subj == currentSubject &&
+          cls == currentClass &&
+          hour == endHour + 1) {
         endHour = hour;
       } else {
         merged.add({
@@ -138,7 +150,6 @@ class _LabAllotmentsReportState extends State<LabAllotmentsReport> {
           )
         ],
       ),
-
       body: reportData.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -149,10 +160,10 @@ class _LabAllotmentsReportState extends State<LabAllotmentsReport> {
                   children: [
                     Text(
                       "Lab: ${labEntry.key}",
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 18),
                     ),
                     const SizedBox(height: 8),
-
                     ...labEntry.value.entries.map((dateEntry) {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,24 +176,21 @@ class _LabAllotmentsReportState extends State<LabAllotmentsReport> {
                               color: Colors.blue,
                             ),
                           ),
-
                           ...dateEntry.value.map((e) {
                             return Padding(
                               padding: const EdgeInsets.only(left: 20, top: 4),
                               child: Text(
-                                "Subject: ${e['subject_name']}   "
-                                "Class: ${e['class_name']}   "
+                                "${e['class_name']}  "
+                                "${e['subject_name']} "
                                 "Hours: ${e['hours']}",
                                 style: const TextStyle(color: Colors.red),
                               ),
                             );
                           }),
-
                           const SizedBox(height: 12),
                         ],
                       );
                     }),
-
                     const Divider(height: 30),
                   ],
                 );
@@ -209,60 +217,53 @@ class _LabAllotmentsReportState extends State<LabAllotmentsReport> {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-
               pw.Text(
                 "External Lab Allotment",
-                style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold),
+                style:
+                    pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold),
               ),
-
               pw.Text(
                 "From: ${DateFormat('dd-MM-yyyy').format(widget.startDate)}     "
                 "To: ${DateFormat('dd-MM-yyyy').format(widget.endDate)}",
-                style: pw.TextStyle(fontSize: 14),
+                style: const pw.TextStyle(fontSize: 14),
               ),
-
               pw.SizedBox(height: 20),
-
               ...reportData.entries.map((labEntry) {
                 return pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
                       "Lab: ${labEntry.key}",
-                      style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+                      style: pw.TextStyle(
+                          fontSize: 16, fontWeight: pw.FontWeight.bold),
                     ),
-
                     pw.SizedBox(height: 6),
-
                     ...labEntry.value.entries.map((dateEntry) {
                       return pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           pw.Text(
-                            "  ${dateEntry.key}",
+                            dateEntry.key,
                             style: pw.TextStyle(
                               fontWeight: pw.FontWeight.bold,
                               fontSize: 14,
                               color: PdfColor.fromHex("#0000FF"),
                             ),
                           ),
-
                           ...dateEntry.value.map((e) {
                             return pw.Text(
                               "${e['class_name']}  "
-                              "${e['subject_name']}  "                                   
-                              "Hours: ${e['hours']}",
+                              "${e['subject_name']}  "
+                              "Hours: ${e['hours'].toString().replaceAll('-', '–')}",
                               style: pw.TextStyle(
                                 color: PdfColor.fromHex("#FF0000"),
                               ),
                             );
                           }),
-
                           pw.SizedBox(height: 10),
                         ],
                       );
                     }),
-
                     pw.SizedBox(height: 20),
                   ],
                 );
