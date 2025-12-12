@@ -14,6 +14,7 @@ class LabController extends GetxController {
   var labAllotments2 = <Labexternal>[].obs;
   var labAllotmentsR = <String, List<Map<String, dynamic>>>{}.obs;
   var apiData = <Labexternal>[].obs;
+    var pdfFilter = 'both'.obs;
 
   // ✅ allot is NOT set here → only controlled by UI
   var formData = <String, String>{

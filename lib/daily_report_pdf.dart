@@ -33,6 +33,7 @@ class DailyGridPdfGenerator {
   static Future<void> generate({
     required DateTime date,
     required LabController labController,
+    required String filter,   // NEW FILTER PARAMETER
   }) async {
 
     final pdf = pw.Document();
@@ -41,11 +42,22 @@ class DailyGridPdfGenerator {
     final formattedDate = df.format(date);
     final labMap = labController.labAllotments;
 
-    // Build our lookup map
+    // Build table map
     Map<String, Map<String, Map<String, dynamic>>> table = {};
+
     for (var lab in labOrder) {
       table[lab] = {};
+
       var entries = (labMap[lab] ?? []).cast<Map<String, dynamic>>();
+
+      // APPLY FILTER -------------------------
+      entries = entries.where((e) {
+        final ext = (e["external"] ?? "").toString().toLowerCase();
+        if (filter == "internal") return ext != "external" && ext != "yes";
+        if (filter == "external") return ext == "external" || ext == "yes";
+        return true; // both
+      }).toList();
+      // --------------------------------------
 
       for (var e in entries) {
         final hr = e["hours"]?.toString();
@@ -55,11 +67,10 @@ class DailyGridPdfGenerator {
       }
     }
 
-    final pageWidth = PdfPageFormat.a4.landscape.width - 20;  
-    final labColWidth = 55.0; 
+    final pageWidth = PdfPageFormat.a4.landscape.width - 20;
+    final labColWidth = 55.0;
     final remaining = pageWidth - labColWidth;
 
-    // Force hour width integer for stability
     final hourWidth = (remaining / uiHours.length).floorToDouble();
     final lastHourWidth = remaining - hourWidth * (uiHours.length - 1);
 
@@ -70,22 +81,23 @@ class DailyGridPdfGenerator {
     final headerStyle = pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold);
     final cellStyle = pw.TextStyle(fontSize: 9);
 
-    // Build PDF Page
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4.landscape,
         margin: pw.EdgeInsets.all(10),
-        build: (pw.Context ctx) {
+        build: (_) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-
               pw.Container(
                 width: double.infinity,
                 padding: pw.EdgeInsets.all(8),
                 decoration: pw.BoxDecoration(border: pw.Border.all(width: 1)),
                 alignment: pw.Alignment.center,
-                child: pw.Text("DAILY LAB ALLOTMENT", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                child: pw.Text(
+                  "DAILY LAB ALLOTMENT (${filter.toUpperCase()})",
+                  style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                ),
               ),
 
               pw.SizedBox(height: 5),
@@ -93,7 +105,7 @@ class DailyGridPdfGenerator {
 
               pw.SizedBox(height: 8),
 
-              // HEADER ROW
+              // HEADER
               pw.Row(
                 children: [
                   pw.Container(
@@ -118,7 +130,6 @@ class DailyGridPdfGenerator {
 
               pw.SizedBox(height: 2),
 
-              // DATA ROWS
               ...labOrder.map((lab) {
                 return _buildLabRow(
                   lab: lab,
@@ -139,7 +150,6 @@ class DailyGridPdfGenerator {
       ),
     );
 
-    // SAVE & OPEN
     final dir = await getApplicationDocumentsDirectory();
     final file = File("${dir.path}/daily_lab_${formattedDate}.pdf");
     await file.writeAsBytes(await pdf.save());
@@ -158,12 +168,9 @@ class DailyGridPdfGenerator {
     required pw.TextStyle headerStyle,
     required pw.TextStyle cellStyle,
   }) {
-
     List<String> hourOrder = ["1","2","3","4","8","5","6","7"];
-
     List<pw.Widget> cells = [];
 
-    // LAB NAME
     cells.add(
       pw.Container(
         width: labColWidth,
@@ -187,7 +194,6 @@ class DailyGridPdfGenerator {
         continue;
       }
 
-      // MERGE LOGIC
       final subj = entry["subject_name"] ?? "";
       final cls = entry["class_name"] ?? "";
       final ext = entry["external"]?.toString()?.toLowerCase() ?? "no";
@@ -211,7 +217,6 @@ class DailyGridPdfGenerator {
         } else break;
       }
 
-      // Compute merged width EXACT integer
       double mergedWidth = 0;
       for (int k = i; k < j; k++) {
         mergedWidth += (k == hourOrder.length - 1) ? lastHourWidth : hourWidth;
