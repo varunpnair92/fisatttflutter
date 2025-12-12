@@ -13,8 +13,17 @@ class SaveAllotmentPage extends StatelessWidget {
   final TextEditingController _endDateController = TextEditingController();
 
   final List<String> labNames = [
-    'L1', 'L2', 'L3', 'L4', 'L5',
-    'L6', 'L7', 'L8', 'L9', 'MP', 'PG'
+    'L1',
+    'L2',
+    'L3',
+    'L4',
+    'L5',
+    'L6',
+    'L7',
+    'L8',
+    'L9',
+    'MP',
+    'PG'
   ];
 
   final List<String> hoursList = ['1', '2', '3', '4', 'LB', '5', '6', '7'];
@@ -30,15 +39,16 @@ class SaveAllotmentPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               DropdownButtonFormField<String>(
                 decoration: InputDecoration(labelText: 'Lab Name'),
                 items: labNames
-                    .map((lab) => DropdownMenuItem(value: lab, child: Text(lab)))
+                    .map(
+                        (lab) => DropdownMenuItem(value: lab, child: Text(lab)))
                     .toList(),
                 onChanged: (value) =>
                     labController.formData['lab_name'] = value ?? '',
-                validator: (value) => value == null ? 'Please select a lab' : null,
+                validator: (value) =>
+                    value == null ? 'Please select a lab' : null,
               ),
 
               SizedBox(height: 16),
@@ -49,11 +59,13 @@ class SaveAllotmentPage extends StatelessWidget {
                     child: DropdownButtonFormField<String>(
                       decoration: InputDecoration(labelText: 'From Hour'),
                       items: hoursList
-                          .map((hour) => DropdownMenuItem(value: hour, child: Text(hour)))
+                          .map((hour) =>
+                              DropdownMenuItem(value: hour, child: Text(hour)))
                           .toList(),
                       onChanged: (value) =>
                           labController.formData['from_hour'] = value ?? '',
-                      validator: (value) => value == null ? 'Select from hour' : null,
+                      validator: (value) =>
+                          value == null ? 'Select from hour' : null,
                     ),
                   ),
                   SizedBox(width: 16),
@@ -61,11 +73,13 @@ class SaveAllotmentPage extends StatelessWidget {
                     child: DropdownButtonFormField<String>(
                       decoration: InputDecoration(labelText: 'To Hour'),
                       items: hoursList
-                          .map((hour) => DropdownMenuItem(value: hour, child: Text(hour)))
+                          .map((hour) =>
+                              DropdownMenuItem(value: hour, child: Text(hour)))
                           .toList(),
                       onChanged: (value) =>
                           labController.formData['to_hour'] = value ?? '',
-                      validator: (value) => value == null ? 'Select to hour' : null,
+                      validator: (value) =>
+                          value == null ? 'Select to hour' : null,
                     ),
                   ),
                 ],
@@ -138,25 +152,29 @@ class SaveAllotmentPage extends StatelessWidget {
               // -------------------------------------------------------
               //     FILTER TOGGLE FOR PDF
               // -------------------------------------------------------
-              Text("PDF Filter:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text("PDF Filter:",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               Obx(() => Row(
                     children: [
                       ChoiceChip(
                         label: Text("Internal"),
                         selected: labController.pdfFilter.value == "internal",
-                        onSelected: (_) => labController.pdfFilter.value = "internal",
+                        onSelected: (_) =>
+                            labController.pdfFilter.value = "internal",
                       ),
                       SizedBox(width: 10),
                       ChoiceChip(
                         label: Text("External"),
                         selected: labController.pdfFilter.value == "external",
-                        onSelected: (_) => labController.pdfFilter.value = "external",
+                        onSelected: (_) =>
+                            labController.pdfFilter.value = "external",
                       ),
                       SizedBox(width: 10),
                       ChoiceChip(
                         label: Text("Both"),
                         selected: labController.pdfFilter.value == "both",
-                        onSelected: (_) => labController.pdfFilter.value = "both",
+                        onSelected: (_) =>
+                            labController.pdfFilter.value = "both",
                       ),
                     ],
                   )),
@@ -212,20 +230,26 @@ class SaveAllotmentPage extends StatelessWidget {
                     onPressed: () async {
                       if (_startDateController.text.isNotEmpty &&
                           _endDateController.text.isNotEmpty) {
+                        final start = DateFormat('dd-MM-yyyy')
+                            .parse(_startDateController.text);
+                        final end = DateFormat('dd-MM-yyyy')
+                            .parse(_endDateController.text);
+
                         await labController.fetchLabAllotmentsForRange(
-                          DateFormat('dd-MM-yyyy')
-                              .parse(_startDateController.text),
-                          DateFormat('dd-MM-yyyy')
-                              .parse(_endDateController.text),
+                            start, end);
+
+                        Get.to(
+                          LabAllotmentsReport(
+                            startDate: start,
+                            endDate: end,
+                          ),
                         );
-                        Get.to(LabAllotmentsReport());
                       } else {
                         Get.snackbar("Error", "Select both start & end dates");
                       }
                     },
                     child: Text('Generate Report'),
                   ),
-
                   ElevatedButton(
                     onPressed: () async {
                       if (_startDateController.text.isEmpty) {
@@ -241,14 +265,13 @@ class SaveAllotmentPage extends StatelessWidget {
                       await DailyGridPdfGenerator.generate(
                         date: date,
                         labController: labController,
-                        filter: labController.pdfFilter.value,  // PASS FILTER
+                        filter: labController.pdfFilter.value, // PASS FILTER
                       );
                     },
                     child: Text("Generate Daily PDF"),
                   ),
                 ],
               ),
-
             ],
           ),
         ),
