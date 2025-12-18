@@ -45,8 +45,15 @@ class SaveAllotmentPage extends StatelessWidget {
                     .map(
                         (lab) => DropdownMenuItem(value: lab, child: Text(lab)))
                     .toList(),
-                onChanged: (value) =>
-                    labController.formData['lab_name'] = value ?? '',
+                onChanged: (value) {
+                  if (value == 'PG') {
+                    labController.formData['lab_name'] = 'PG LAB';
+                  } else if (value == 'MP') {
+                    labController.formData['lab_name'] = 'MICRO PROCESSOR LAB';
+                  } else {
+                    labController.formData['lab_name'] = value ?? '';
+                  }
+                },
                 validator: (value) =>
                     value == null ? 'Please select a lab' : null,
               ),

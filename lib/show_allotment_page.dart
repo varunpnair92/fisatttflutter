@@ -49,10 +49,10 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
           freeLabSlots = jsonDecode(response.body)['free_slots'];
         });
       } else {
-        print('Error fetching free lab slots: ${response.statusCode}');
+       // print('Error fetching free lab slots: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching free lab slots: $e');
+     // print('Error fetching free lab slots: $e');
     }
   }
 

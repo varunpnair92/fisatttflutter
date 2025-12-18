@@ -79,7 +79,7 @@ class _LabAllotmentsReportState extends State<LabAllotmentsReport> {
         merged.add({
           'subject_name': currentSubject,
           'class_name': currentClass,
-          'hours': startHour == endHour ? "$startHour" : "$startHour–$endHour",
+          'hours': startHour == endHour ? "$startHour" : "$startHour To $endHour",
         });
 
         // Start new block
@@ -94,7 +94,7 @@ class _LabAllotmentsReportState extends State<LabAllotmentsReport> {
     merged.add({
       'subject_name': currentSubject,
       'class_name': currentClass,
-      'hours': startHour == endHour ? "$startHour" : "$startHour–$endHour",
+      'hours': startHour == endHour ? "$startHour" : "$startHour To $endHour",
     });
 
     return merged;
@@ -254,7 +254,7 @@ class _LabAllotmentsReportState extends State<LabAllotmentsReport> {
                             return pw.Text(
                               "${e['class_name']}  "
                               "${e['subject_name']}  "
-                              "Hours: ${e['hours'].toString().replaceAll('-', '–')}",
+                              "Hours: ${e['hours']}",
                               style: pw.TextStyle(
                                 color: PdfColor.fromHex("#FF0000"),
                               ),
