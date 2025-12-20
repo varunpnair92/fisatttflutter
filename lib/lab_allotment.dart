@@ -13,7 +13,6 @@ class LabAllotmentPage extends StatelessWidget {
       body: Column(
         children: <Widget>[
           SizedBox(height: 35),
-
           Obx(() {
             return TableCalendar(
               firstDay: DateTime.utc(2025, 1, 1),
@@ -35,10 +34,9 @@ class LabAllotmentPage extends StatelessWidget {
               },
             );
           }),
-
           Expanded(
-            child: Obx(() =>
-                _buildAllotmentTable(labController.selectedDate.value)),
+            child: Obx(
+                () => _buildAllotmentTable(labController.selectedDate.value)),
           ),
         ],
       ),
@@ -50,14 +48,29 @@ class LabAllotmentPage extends StatelessWidget {
   // ===========================
   Widget _buildAllotmentTable(DateTime selectedDate) {
     final labs = [
-      'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8', 'L9', 'MP', 'PG LAB'
+      'L1',
+      'L2',
+      'L3',
+      'L4',
+      'L5',
+      'L6',
+      'L7',
+      'L8',
+      'L9',
+      'MP',
+      'PG LAB'
     ];
 
     final hours = ['H1', 'H2', 'H3', 'H4', 'LB', 'H5', 'H6', 'H7'];
 
     final dayNames = [
-      'Monday', 'Tuesday', 'Wednesday', 'Thursday',
-      'Friday', 'Saturday', 'Sunday'
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
     ];
 
     final dayString = dayNames[selectedDate.weekday - 1];
@@ -110,16 +123,15 @@ class LabAllotmentPage extends StatelessWidget {
 
                   // ROW FOR EACH LAB
                   ...labs.map((lab) {
-                    final labEntries =
-                        labController.labAllotments[lab] ?? [];
+                    final labEntries = labController.labAllotments[lab] ?? [];
 
                     // FILTER VALID DAY ENTRIES
                     final dayEntries = labEntries.where((entry) {
                       try {
                         final s = df.parse(entry['start_date']);
                         final e = df.parse(entry['end_date']);
-                        bool inRange =
-                            selectedDate.isAfter(s.subtract(Duration(days: 1))) &&
+                        bool inRange = selectedDate
+                                .isAfter(s.subtract(Duration(days: 1))) &&
                             selectedDate.isBefore(e.add(Duration(days: 1)));
 
                         return inRange && entry['day'] == dayString;
@@ -193,15 +205,19 @@ class LabAllotmentPage extends StatelessWidget {
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             border: Border.all(),
-                            color: found["external"] == "external"
-                                ? Colors.green[300]
-                                : Colors.blue[200],
+                            color: found['subject'] == "free"
+                                ? Colors.yellow[300]
+                                : found["external"] == "external"
+                                    ? Colors.green[300]
+                                    : Colors.blue[200],
                           ),
-                          child: Text(
-                            "${found['class']} - ${found['subject']}",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 12),
-                          ),
+                          child: found['subject'] == "free"
+                              ? const SizedBox()
+                              : Text(
+                                  "${found['class']} - ${found['subject']}",
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
                         );
                       }).toList(),
                     );
