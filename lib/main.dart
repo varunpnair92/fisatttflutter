@@ -9,7 +9,7 @@ import 'home_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  WidgetsFlutterBinding.ensureInitialized();
+ 
 
   await Firebase.initializeApp(
     options: const FirebaseOptions(
@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: "/user", page: () => HomePageU()),
         GetPage(name: "/google", page: () => GoogleSignInPage()),
       ],
-      initialRoute: "/",
+      initialRoute: "/start",
     );
   }
 }

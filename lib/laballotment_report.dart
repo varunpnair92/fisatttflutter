@@ -142,7 +142,7 @@ class _LabAllotmentsReportState extends State<LabAllotmentsReport> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('External Allotments Report'),
+        title: const Text('Extra Lab Allotment'),
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
@@ -204,7 +204,7 @@ class _LabAllotmentsReportState extends State<LabAllotmentsReport> {
   // -------------------------------------------------------------------
   Future<void> _generatePdfReport() async {
     if (reportData.isEmpty) {
-      Get.snackbar("Error", "No external allotments available");
+      Get.snackbar("Error", "No extra lab allotments");
       return;
     }
 

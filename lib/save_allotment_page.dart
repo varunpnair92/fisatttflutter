@@ -1,4 +1,5 @@
 import 'package:fisat_timetable/daily_report_pdf.dart';
+import 'package:fisat_timetable/range_matrix_pdf_generator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -256,6 +257,31 @@ class SaveAllotmentPage extends StatelessWidget {
                       }
                     },
                     child: Text('Generate Report'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (_startDateController.text.isEmpty ||
+                          _endDateController.text.isEmpty) {
+                        Get.snackbar("Error", "Select Start & End Dates");
+                        return;
+                      }
+
+                      final start = DateFormat('dd-MM-yyyy')
+                          .parse(_startDateController.text);
+                      final end = DateFormat('dd-MM-yyyy')
+                          .parse(_endDateController.text);
+
+                      await labController.fetchLabAllotmentsForRange(
+                          start, end);
+
+                      await RangeMatrixPdfGenerator.generate(
+                        startDate: start,
+                        endDate: end,
+                        labController: labController,
+                        filter: labController.pdfFilter.value,
+                      );
+                    },
+                    child: Text("Date PDF"),
                   ),
                   ElevatedButton(
                     onPressed: () async {
