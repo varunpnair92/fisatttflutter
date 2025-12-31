@@ -1,3 +1,4 @@
+import 'package:fisat_timetable/cummilative_data_display.dart';
 import 'package:fisat_timetable/daily_report_pdf.dart';
 import 'package:fisat_timetable/range_matrix_pdf_generator.dart';
 import 'package:flutter/material.dart';
@@ -188,46 +189,67 @@ class SaveAllotmentPage extends StatelessWidget {
                   )),
               SizedBox(height: 25),
 
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    if (!labController.formData.containsKey('allot')) {
-                      Get.snackbar("Error", "Please select Continue or Repeat");
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      if (!labController.formData.containsKey('allot')) {
+                        Get.snackbar(
+                            "Error", "Please select Continue or Repeat");
+                        return;
+                      }
+
+                      final fromHour = labController.formData['from_hour'];
+                      final toHour = labController.formData['to_hour'];
+
+                      if (fromHour != null && toHour != null) {
+                        final from = hoursList.indexOf(fromHour);
+                        final to = hoursList.indexOf(toHour);
+
+                        if (from <= to) {
+                          final selectedHours = hoursList
+                              .sublist(from, to + 1)
+                              .map((h) => h == "LB" ? "8" : h)
+                              .toList();
+
+                          labController.formData['hours_allotted'] =
+                              selectedHours.join(',');
+
+                          labController.formData.remove('from_hour');
+                          labController.formData.remove('to_hour');
+
+                          labController.saveData(
+                            formKey: _formKey,
+                            startDateController: _startDateController,
+                            endDateController: _endDateController,
+                          );
+                        } else {
+                          Get.snackbar(
+                              "Invalid", "From hour must be ≤ To hour");
+                        }
+                      }
+                    }
+                  },
+                  child: Text('Save'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_startDateController.text.isEmpty ||
+                        _endDateController.text.isEmpty) {
+                      Get.snackbar("Error", "Select both start & end dates");
                       return;
                     }
 
-                    final fromHour = labController.formData['from_hour'];
-                    final toHour = labController.formData['to_hour'];
+                    final start = DateFormat('dd-MM-yyyy')
+                        .parse(_startDateController.text);
+                    final end =
+                        DateFormat('dd-MM-yyyy').parse(_endDateController.text);
 
-                    if (fromHour != null && toHour != null) {
-                      final from = hoursList.indexOf(fromHour);
-                      final to = hoursList.indexOf(toHour);
-
-                      if (from <= to) {
-                        final selectedHours = hoursList
-                            .sublist(from, to + 1)
-                            .map((h) => h == "LB" ? "8" : h)
-                            .toList();
-
-                        labController.formData['hours_allotted'] =
-                            selectedHours.join(',');
-
-                        labController.formData.remove('from_hour');
-                        labController.formData.remove('to_hour');
-
-                        labController.saveData(
-                          formKey: _formKey,
-                          startDateController: _startDateController,
-                          endDateController: _endDateController,
-                        );
-                      } else {
-                        Get.snackbar("Invalid", "From hour must be ≤ To hour");
-                      }
-                    }
-                  }
-                },
-                child: Text('Save'),
-              ),
+                    Get.to(() => CumulativePage(start: start, end: end));
+                  },
+                  child: const Text("External Summary"),
+                ),
+              ]),
 
               SizedBox(height: 20),
 

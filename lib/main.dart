@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: "/user", page: () => HomePageU()),
         GetPage(name: "/google", page: () => GoogleSignInPage()),
       ],
-      initialRoute: "/start",
+      initialRoute: "/",
     );
   }
 }

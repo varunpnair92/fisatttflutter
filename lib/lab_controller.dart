@@ -1,3 +1,4 @@
+import 'package:fisat_timetable/cummilativedata_model.dart';
 import 'package:fisat_timetable/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -209,4 +210,27 @@ class LabController extends GetxController {
     endDateController?.clear();
     update();
   }
+
+//get cummilative data within a date range
+Future<List<CumulativeData>> fetchCumulative(
+    DateTime start, DateTime end) async {
+
+  final s = DateFormat("dd-MM-yyyy").format(start);
+  final e = DateFormat("dd-MM-yyyy").format(end);
+
+  final url =
+      "${Sharedvariable().ip}/lab/cumulative_external_range?start_date=$s&end_date=$e";
+
+  final res = await http.get(Uri.parse(url));
+
+  if (res.statusCode == 200) {
+    final body = jsonDecode(res.body) as List;
+    return body.map((e) => CumulativeData.fromJson(e)).toList();
+  }
+
+  return [];
+}
+
+
+
 }
