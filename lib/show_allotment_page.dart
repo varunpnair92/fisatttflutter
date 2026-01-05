@@ -72,13 +72,19 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
   // Copy single allotment
   // ---------------------------
   void _copySingle(Labexternal a) {
+    String hours = a.hoursAllotted
+        .split(',')
+        .map((h) => h.trim() == '8' ? 'LB' : h.trim())
+        .join(', ');
+
     String text = """
 Date: ${a.startDate}
 Lab: ${a.labName}
 Class: ${a.className}
 Subject: ${a.subjectName}
-Hours: ${a.hoursAllotted}
+Hours: $hours
 """;
+
     Clipboard.setData(ClipboardData(text: text));
     Get.snackbar("Copied", "Allotment copied",
         snackPosition: SnackPosition.BOTTOM);
@@ -94,13 +100,20 @@ Hours: ${a.hoursAllotted}
         .where((a) => selectedIds.contains(a.id))
         .toList();
 
-    String combined = selected.map((a) => """
+    String combined = selected.map((a) {
+      String hours = a.hoursAllotted
+          .split(',')
+          .map((h) => h.trim() == '8' ? 'LB' : h.trim())
+          .join(', ');
+
+      return """
 Date: ${a.startDate}
 Lab: ${a.labName}
 Class: ${a.className}
 Subject: ${a.subjectName}
-Hours: ${a.hoursAllotted}
-""").join("\n-------------------------\n");
+Hours: $hours
+""";
+    }).join("\n-------------------------\n");
 
     Clipboard.setData(ClipboardData(text: combined.trim()));
     Get.snackbar("Copied", "${selected.length} items copied",
