@@ -127,7 +127,7 @@ Hours: $hours
   // ---------------------------
   // Delete
   // ---------------------------
-  void _showDeleteConfirmationDialog(int id) {
+  void _showDeleteConfirmationDialog(Labexternal a) {
     Get.defaultDialog(
       title: "Delete Allotment",
       middleText: "Are you sure?",
@@ -135,8 +135,33 @@ Hours: $hours
       textCancel: "No",
       confirmTextColor: Colors.white,
       buttonColor: Colors.red,
-      onConfirm: () {
-        examController.deleteAllotment(id);
+      onConfirm: () async {
+        // -------- DELETE --------
+        await examController.deleteAllotment(a.id);
+
+        // -------- FORMAT HOURS --------
+        String hours = a.hoursAllotted
+            .split(',')
+            .map((h) => h.trim() == '8' ? 'LB' : h.trim())
+            .join(', ');
+
+        // -------- TELEGRAM MESSAGE --------
+        String message = """
+🔴 <b>Allotment Cancelled</b>
+
+📅 Date: ${a.startDate}
+🧪 Lab: ${a.labName}
+🎓 Class: ${a.className}
+📘 Subject: ${a.subjectName}
+⏰ Hours: $hours
+""";
+
+        await http.post(
+          Uri.parse("${Sharedvariable().ip}/lab/send_message"),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({"message": message}),
+        );
+
         Get.back();
         refreshPage();
       },
@@ -311,7 +336,7 @@ Hours: $hours
               ),
               trailing: IconButton(
                 icon: const Icon(Icons.delete, color: Colors.red),
-                onPressed: () => _showDeleteConfirmationDialog(allot.id),
+                onPressed: () => _showDeleteConfirmationDialog(allot),
               ),
             ),
           );
