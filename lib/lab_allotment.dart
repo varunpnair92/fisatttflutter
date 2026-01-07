@@ -110,27 +110,64 @@ class LabAllotmentPage extends StatelessWidget {
                       }
                     }).toList();
 
-                    // -------- MERGE HOURS --------
-                    final Map<String, List<int>> mergedGroups = {};
+                    // ====================================================
+                    //      MERGE HOURS  (FINAL — CUSTOM ORDER LOGIC)
+                    // ====================================================
+                    final Map<String, List<int>> grouped = {};
 
                     for (var e in dayEntries) {
                       final key =
                           "${e['class_name']}|${e['subject_name']}|${e['external']}";
-                      final hr = int.tryParse(e['hours'] ?? '') ?? -1;
-                      mergedGroups.putIfAbsent(key, () => []);
-                      mergedGroups[key]!.add(hr);
+
+                      int hr = int.tryParse(e['hours'] ?? '') ?? -1;
+
+                      grouped.putIfAbsent(key, () => []);
+                      grouped[key]!.add(hr);
                     }
 
-                    final mergedSlots = mergedGroups.entries.map((e) {
-                      final parts = e.key.split('|');
-                      final hrs = e.value..sort();
-                      return {
+                    // YOUR ORDER → 8 sits between 4 & 5
+                    final order = [1,2,3,4,8,5,6,7];
+
+                    final List<Map<String,dynamic>> mergedSlots = [];
+
+                    grouped.forEach((key, list) {
+                      final parts = key.split("|");
+
+                      list.sort((a,b) =>
+                          order.indexOf(a).compareTo(order.indexOf(b)));
+
+                      List<int> block = [list.first];
+
+                      for (int i = 1; i < list.length; i++) {
+                        final prev = block.last;
+                        final curr = list[i];
+
+                        final prevIndex = order.indexOf(prev);
+                        final currIndex = order.indexOf(curr);
+
+                        final isContiguous =
+                            currIndex == prevIndex + 1;
+
+                        if (isContiguous) {
+                          block.add(curr);
+                        } else {
+                          mergedSlots.add({
+                            "class": parts[0],
+                            "subject": parts[1],
+                            "external": parts[2],
+                            "hours": List<int>.from(block),
+                          });
+                          block = [curr];
+                        }
+                      }
+
+                      mergedSlots.add({
                         "class": parts[0],
                         "subject": parts[1],
                         "external": parts[2],
-                        "hours": hrs,
-                      };
-                    }).toList();
+                        "hours": List<int>.from(block),
+                      });
+                    });
 
                     // -------- BUILD ROW --------
                     return Row(
@@ -143,9 +180,7 @@ class LabAllotmentPage extends StatelessWidget {
                           orElse: () => {},
                         );
 
-                        if (found.isEmpty) {
-                          return _cell("");
-                        }
+                        if (found.isEmpty) return _cell("");
 
                         final hrs = found['hours'] as List<int>;
                         if (hrs.first != mapped) {
@@ -168,10 +203,10 @@ class LabAllotmentPage extends StatelessWidget {
                               onConfirm: () async {
                                 Get.back();
 
-                                final dateStr = DateFormat('dd-MM-yyyy')
-                                    .format(labController.selectedDate.value);
+                                final dateStr =
+                                    DateFormat('dd-MM-yyyy')
+                                        .format(labController.selectedDate.value);
 
-                                // 🔥 Free merged range in ONE call
                                 labController.formData.value = {
                                   "lab_name": lab,
                                   "hours_allotted": hrs.join(','),
@@ -205,7 +240,6 @@ class LabAllotmentPage extends StatelessWidget {
                                       ? Colors.green[300]
                                       : Colors.blue[200],
                             ),
-                            // ✅ FREE SLOT → NO TEXT
                             child: found['subject'] == "free"
                                 ? const SizedBox()
                                 : Text(
