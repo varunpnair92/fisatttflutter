@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:fisat_timetable/lab_controller.dart';
+import 'package:fisat_timetable/shared.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:table_calendar/table_calendar.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -51,14 +55,29 @@ class LabAllotmentPage extends StatelessWidget {
   // =====================================================
   Widget _buildAllotmentTable(DateTime selectedDate) {
     final labs = [
-      'L1','L2','L3','L4','L5','L6','L7','L8','L9','MP','PG LAB'
+      'L1',
+      'L2',
+      'L3',
+      'L4',
+      'L5',
+      'L6',
+      'L7',
+      'L8',
+      'L9',
+      'MP',
+      'PG LAB'
     ];
 
-    final hours = ['H1','H2','H3','H4','LB','H5','H6','H7'];
+    final hours = ['H1', 'H2', 'H3', 'H4', 'LB', 'H5', 'H6', 'H7'];
 
     final dayNames = [
-      'Monday','Tuesday','Wednesday',
-      'Thursday','Friday','Saturday','Sunday'
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
     ];
 
     final dayString = dayNames[selectedDate.weekday - 1];
@@ -69,7 +88,6 @@ class LabAllotmentPage extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           // =============== LAB COLUMN ===============
           Column(
             children: [
@@ -84,7 +102,6 @@ class LabAllotmentPage extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               child: Column(
                 children: [
-
                   // ---------- HOURS HEADER ----------
                   Row(
                     children: hours.map((h) => _headerCell(h)).toList(),
@@ -92,8 +109,7 @@ class LabAllotmentPage extends StatelessWidget {
 
                   // ---------- EACH LAB ----------
                   ...labs.map((lab) {
-                    final labEntries =
-                        labController.labAllotments[lab] ?? [];
+                    final labEntries = labController.labAllotments[lab] ?? [];
 
                     // FILTER DATE + DAY
                     final dayEntries = labEntries.where((e) {
@@ -111,7 +127,7 @@ class LabAllotmentPage extends StatelessWidget {
                     }).toList();
 
                     // ====================================================
-                    //      MERGE HOURS  (FINAL — CUSTOM ORDER LOGIC)
+                    //      MERGE HOURS (CUSTOM ORDER LOGIC)
                     // ====================================================
                     final Map<String, List<int>> grouped = {};
 
@@ -125,15 +141,14 @@ class LabAllotmentPage extends StatelessWidget {
                       grouped[key]!.add(hr);
                     }
 
-                    // YOUR ORDER → 8 sits between 4 & 5
-                    final order = [1,2,3,4,8,5,6,7];
+                    final order = [1, 2, 3, 4, 8, 5, 6, 7];
 
-                    final List<Map<String,dynamic>> mergedSlots = [];
+                    final List<Map<String, dynamic>> mergedSlots = [];
 
                     grouped.forEach((key, list) {
                       final parts = key.split("|");
 
-                      list.sort((a,b) =>
+                      list.sort((a, b) =>
                           order.indexOf(a).compareTo(order.indexOf(b)));
 
                       List<int> block = [list.first];
@@ -145,8 +160,7 @@ class LabAllotmentPage extends StatelessWidget {
                         final prevIndex = order.indexOf(prev);
                         final currIndex = order.indexOf(curr);
 
-                        final isContiguous =
-                            currIndex == prevIndex + 1;
+                        final isContiguous = currIndex == prevIndex + 1;
 
                         if (isContiguous) {
                           block.add(curr);
@@ -189,8 +203,114 @@ class LabAllotmentPage extends StatelessWidget {
 
                         final span = hrs.length;
 
-                        // ================= LONG PRESS FREE =================
                         return GestureDetector(
+                          // =================================================
+                          //          DOUBLE TAP  →  MOVE SLOT
+                          // =================================================
+                          onDoubleTap: () async {
+                            final dateStr = DateFormat('dd-MM-yyyy')
+                                .format(labController.selectedDate.value);
+
+                            final newLab = await Get.dialog<String>(
+                              SimpleDialog(
+                                title: Text("Move to which Lab?"),
+                                children: [
+                                  ...labs.map((l) => SimpleDialogOption(
+                                        child: Text(l),
+                                        onPressed: () => Get.back(result: l),
+                                      ))
+                                ],
+                              ),
+                            );
+
+                            if (newLab == null || newLab == lab) return;
+
+                            final className = found['class'];
+                            final subject = found['subject'];
+                            final external = found['external'];
+                            final hourText = hrs
+                                .map((h) => h == 8 ? 'LB' : h.toString())
+                                .join(',');
+
+                            // ===================================================
+                            // 1️⃣  SAVE IN NEW LAB
+                            // ===================================================
+                            labController.formData.value = {
+                              "lab_name": newLab,
+                              "hours_allotted": hrs.join(','),
+                              "subject_name": subject,
+                              "class_name": className,
+                              "start_date": dateStr,
+                              "end_date": dateStr,
+                              "external": "external",
+                              "allot": "continue",
+                            };
+
+                            await labController.saveData(
+                              formKey: GlobalKey<FormState>(),
+                              startDateController:
+                                  TextEditingController(text: dateStr),
+                              endDateController:
+                                  TextEditingController(text: dateStr),
+                            );
+
+                            // ===================================================
+                            // 2️⃣  FREE OLD LAB
+                            // ===================================================
+                            labController.formData.value = {
+                              "lab_name": lab,
+                              "hours_allotted": hrs.join(','),
+                              "subject_name": "free",
+                              "class_name": "free",
+                              "start_date": dateStr,
+                              "end_date": dateStr,
+                              "external": "external",
+                              "allot": "continue",
+                            };
+
+                            await labController.saveData(
+                              formKey: GlobalKey<FormState>(),
+                              startDateController:
+                                  TextEditingController(text: dateStr),
+                              endDateController:
+                                  TextEditingController(text: dateStr),
+                            );
+
+                            // ===================================================
+                            // 3️⃣  SEND TELEGRAM MESSAGE (USING YOUR STYLE)
+                            // ===================================================
+                            final buffer = StringBuffer();
+
+                            buffer.writeln("\n"
+                                "🔁 LAB SHIFT UPDATE\n\n"
+                                "🎓 Class: $className\n"
+                                "📘 Subject: $subject\n"
+                                "📅 Date: $dateStr\n"
+                                "⏰ Hours: $hourText\n\n"
+                                "🏫 Shifted FROM: $lab\n"
+                                "➡️ Shifted TO: $newLab\n");
+
+                            final url =
+                                "${Sharedvariable().ip}/lab/send_message";
+
+                            await http.post(
+                              Uri.parse(url),
+                              headers: {"Content-Type": "application/json"},
+                              body: jsonEncode({"message": buffer.toString()}),
+                            );
+
+                            // ===================================================
+                            // 4️⃣ REFRESH UI
+                            // ===================================================
+                            await labController.fetchLabAllotmentsForDate(
+                                labController.selectedDate.value);
+
+                            Get.snackbar("Moved", "Shifted to $newLab");
+                          },
+
+                          // =================================================
+                          //          LONG PRESS  →  FREE SLOT
+                          // =================================================
                           onLongPress: () async {
                             if (found['subject'] == "free") return;
 
@@ -203,9 +323,8 @@ class LabAllotmentPage extends StatelessWidget {
                               onConfirm: () async {
                                 Get.back();
 
-                                final dateStr =
-                                    DateFormat('dd-MM-yyyy')
-                                        .format(labController.selectedDate.value);
+                                final dateStr = DateFormat('dd-MM-yyyy')
+                                    .format(labController.selectedDate.value);
 
                                 labController.formData.value = {
                                   "lab_name": lab,
@@ -228,6 +347,7 @@ class LabAllotmentPage extends StatelessWidget {
                               },
                             );
                           },
+
                           child: Container(
                             width: 60.0 * span,
                             height: 40,
