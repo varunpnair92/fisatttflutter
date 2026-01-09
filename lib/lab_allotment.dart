@@ -243,6 +243,7 @@ class LabAllotmentPage extends StatelessWidget {
                               "start_date": dateStr,
                               "end_date": dateStr,
                               "external": "external",
+                              "skip_telegram": "true",
                               "allot": "continue",
                             };
 
@@ -265,6 +266,7 @@ class LabAllotmentPage extends StatelessWidget {
                               "start_date": dateStr,
                               "end_date": dateStr,
                               "external": "external",
+                              "skip_telegram": "true",
                               "allot": "continue",
                             };
 
@@ -334,6 +336,7 @@ class LabAllotmentPage extends StatelessWidget {
                                   "start_date": dateStr,
                                   "end_date": dateStr,
                                   "external": "external",
+                                  "skip_telegram": "true",
                                   "allot": "continue",
                                 };
 
