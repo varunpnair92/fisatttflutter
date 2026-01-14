@@ -19,12 +19,35 @@ class RangeMatrixPdfGenerator {
     "PG LAB":"PG"
   };
 
-  /// FORMAT HOUR RANGE
+  /// ✅ TIMETABLE-AWARE HOUR FORMAT
+  /// Order: 1,2,3,4,LB,5,6,7  (LB = 8)
   static String formatHourRange(List<int> hours) {
     if (hours.isEmpty) return "";
-    hours.sort();
-    if (hours.length == 1) return hours.first.toString();
-    return "${hours.first} To ${hours.last}";
+
+    const order = [1, 2, 3, 4, 8, 5, 6, 7];
+
+    // remove duplicates
+    final unique = hours.toSet().toList();
+
+    // sort by timetable order
+    unique.sort(
+      (a, b) => order.indexOf(a).compareTo(order.indexOf(b))
+    );
+
+    String label(int h) => h == 8 ? "LB" : h.toString();
+
+    // single slot
+    if (unique.length == 1) {
+      return label(unique.first);
+    }
+
+    // ✅ FULL DAY CHECK (Dart-safe)
+    if (order.every((h) => unique.contains(h))) {
+      return "1 To 7";
+    }
+
+    // range
+    return "${label(unique.first)} To ${label(unique.last)}";
   }
 
   /// FILTER LOGIC
@@ -41,14 +64,14 @@ class RangeMatrixPdfGenerator {
     if (filter == "external") return isExternal;
     if (filter == "internal") return !isExternal;
 
-    return true; // both
+    return true;
   }
 
   static Future<void> generate({
     required DateTime startDate,
     required DateTime endDate,
     required LabController labController,
-    required String filter,   /// 👈 NEW
+    required String filter,
   }) async {
 
     final pdf = pw.Document();
@@ -62,7 +85,7 @@ class RangeMatrixPdfGenerator {
       d = d.add(const Duration(days: 1));
     }
 
-    /// -------- MATRIX STRUCTURE --------
+    /// -------- MATRIX --------
     final Map<String, Map<String, List<Map<String,dynamic>>>> matrix = {};
 
     for (final date in dates) {
@@ -70,7 +93,6 @@ class RangeMatrixPdfGenerator {
       final dateStr = df.format(date);
       matrix[dateStr] = {};
 
-      /// fetch daily data
       await labController.fetchLabAllotmentsForDate(date);
 
       for (final lab in labOrder) {
@@ -79,12 +101,10 @@ class RangeMatrixPdfGenerator {
           (labController.labAllotments[lab] ?? [])
             .cast<Map<String,dynamic>>();
 
-        /// group by class+subject+external
         final grouped = <String, Map<String,dynamic>>{};
 
         for (var e in allotments) {
 
-          /// APPLY FILTER HERE
           if (!matchFilter(e["external"], filter)) continue;
 
           final key =
@@ -114,8 +134,8 @@ class RangeMatrixPdfGenerator {
     }
 
     /// -------- STYLES --------
-    final blue  = PdfColor.fromInt(0xFFADD8E6);   // internal
-    final green = PdfColor.fromInt(0xFF90EE90);   // external
+    final blue  = PdfColor.fromInt(0xFFADD8E6);
+    final green = PdfColor.fromInt(0xFF90EE90);
     final border = pw.BoxDecoration(border: pw.Border.all());
 
     /// -------- WIDTHS --------
