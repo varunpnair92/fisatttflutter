@@ -237,6 +237,7 @@ class LabAllotmentPage extends StatelessWidget {
                             // ===================================================
                             labController.formData.value = {
                               "lab_name": newLab,
+                              "moved_from": lab, 
                               "hours_allotted": hrs.join(','),
                               "subject_name": subject,
                               "class_name": className,
@@ -258,25 +259,7 @@ class LabAllotmentPage extends StatelessWidget {
                             // ===================================================
                             // 2️⃣  FREE OLD LAB
                             // ===================================================
-                            labController.formData.value = {
-                              "lab_name": lab,
-                              "hours_allotted": hrs.join(','),
-                              "subject_name": "free",
-                              "class_name": "free",
-                              "start_date": dateStr,
-                              "end_date": dateStr,
-                              "external": "external",
-                              "skip_telegram": "true",
-                              "allot": "continue",
-                            };
-
-                            await labController.saveData(
-                              formKey: GlobalKey<FormState>(),
-                              startDateController:
-                                  TextEditingController(text: dateStr),
-                              endDateController:
-                                  TextEditingController(text: dateStr),
-                            );
+                            //changd code to handle this o server side
 
                             // ===================================================
                             // 3️⃣  SEND TELEGRAM MESSAGE (USING YOUR STYLE)
