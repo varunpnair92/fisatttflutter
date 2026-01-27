@@ -232,5 +232,39 @@ Future<List<CumulativeData>> fetchCumulative(
 }
 
 
+//free slot range
+Future<Map<String, dynamic>> fetchFreeSlotsRange(
+    DateTime start, DateTime end) async {
+
+  final s = DateFormat("dd-MM-yyyy").format(start);
+  final e = DateFormat("dd-MM-yyyy").format(end);
+
+  final url = "${Sharedvariable().ip}/lab/lab_free_slots_range";
+
+  try {
+    final res = await http.post(
+      Uri.parse(url),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "start_date": s,
+        "end_date": e,
+      }),
+    );
+
+    if (res.statusCode == 200) {
+      return jsonDecode(res.body);
+    }
+  } catch (e) {
+   // print("Error fetching free slots: $e");
+  }
+
+  return {"data": []};
+}
+
+
+
+
+
+
 
 }

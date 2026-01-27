@@ -1,5 +1,6 @@
 import 'package:fisat_timetable/cummilative_data_display.dart';
 import 'package:fisat_timetable/daily_report_pdf.dart';
+import 'package:fisat_timetable/free_slot_pdf.dart';
 import 'package:fisat_timetable/range_matrix_pdf_generator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -231,6 +232,28 @@ class SaveAllotmentPage extends StatelessWidget {
                     }
                   },
                   child: Text('Save'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (_startDateController.text.isEmpty ||
+                        _endDateController.text.isEmpty) {
+                      Get.snackbar("Error", "Select Start & End Dates");
+                      return;
+                    }
+
+                    final start = DateFormat('dd-MM-yyyy')
+                        .parse(_startDateController.text);
+
+                    final end =
+                        DateFormat('dd-MM-yyyy').parse(_endDateController.text);
+
+                    await RangeMatrixFreeSlotsPdfGenerator.generate(
+                      startDate: start,
+                      endDate: end,
+                      labController: labController,
+                    );
+                  },
+                  child: Text("Free Slots"),
                 ),
                 ElevatedButton(
                   onPressed: () {
