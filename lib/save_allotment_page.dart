@@ -57,9 +57,65 @@ class SaveAllotmentPage extends StatelessWidget {
                     labController.formData['lab_name'] = value ?? '';
                   }
                 },
-                validator: (value) =>
-                    value == null ? 'Please select a lab' : null,
+                validator: (value) {
+                  if (labController.selectedLabs.isNotEmpty) {
+                    return null; // multi-lab selected → no need single lab
+                  }
+                  if (value == null) return 'Please select a lab';
+                  return null;
+                },
               ),
+              SizedBox(height: 16),
+              // ================= MULTIPLE LAB SELECT (NEW)
+
+              Obx(() => InkWell(
+                    onTap: () async {
+                      await showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: Text("Select Labs"),
+                            content: SingleChildScrollView(
+                              child: Column(
+                                children: labNames.map((lab) {
+                                  return Obx(() => CheckboxListTile(
+                                        title: Text(lab),
+                                        value: labController.selectedLabs
+                                            .contains(lab),
+                                        onChanged: (bool? selected) {
+                                          if (selected == true) {
+                                            labController.selectedLabs.add(lab);
+                                          } else {
+                                            labController.selectedLabs
+                                                .remove(lab);
+                                          }
+                                        },
+                                      ));
+                                }).toList(),
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Get.back(),
+                                child: Text("Done"),
+                              )
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: "Multi Lab Selection",
+                        border: OutlineInputBorder(),
+                      ),
+                      child: Text(
+                        labController.selectedLabs.isEmpty
+                            ? "Tap to select labs"
+                            : labController.selectedLabs.join(', '),
+                      ),
+                    ),
+                  )),
 
               SizedBox(height: 16),
 
@@ -218,6 +274,13 @@ class SaveAllotmentPage extends StatelessWidget {
 
                           labController.formData.remove('from_hour');
                           labController.formData.remove('to_hour');
+                          // ================= NEW: Attach multi labs if selected
+                          // ================= NEW: Attach multi labs if selected
+                          if (labController.selectedLabs.isNotEmpty) {
+                            labController.formData['lab_names'] =
+                                labController.selectedLabs.toList();
+                          }
+                          // ✅ SEND AS LIST
 
                           labController.saveData(
                             formKey: _formKey,

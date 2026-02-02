@@ -15,11 +15,14 @@ class LabController extends GetxController {
   var labAllotments2 = <Labexternal>[].obs;
   var labAllotmentsR = <String, List<Map<String, dynamic>>>{}.obs;
   var apiData = <Labexternal>[].obs;
-    var pdfFilter = 'both'.obs;
+  var pdfFilter = 'both'.obs;
+  var selectedLabs = <String>[].obs;
+  
 
   // ✅ allot is NOT set here → only controlled by UI
-  var formData = <String, String>{
+  var formData = <String, dynamic>{
     "lab_name": "",
+    "lab_names": <String>[],
     "hours_allotted": "",
     "subject_name": "",
     "class_name": "",
@@ -77,16 +80,184 @@ class LabController extends GetxController {
         .toList();
   }
 
+  // Future<void> saveData({
+  //   required GlobalKey<FormState> formKey,
+  //   required TextEditingController startDateController,
+  //   required TextEditingController endDateController,
+  // }) async {
+  //   // ✅ Ensure radio button was selected
+  //   if (!formData.containsKey("allot")) {
+  //     Get.snackbar("Error", "Please select Continue or Repeat");
+  //     return;
+  //   }
+
+  //   var url = "${Sharedvariable().ip}/lab/laballot";
+  //   var continueUrl = "${Sharedvariable().ip}/lab/laballot_continue";
+
+  //   try {
+  //     final response = await http.post(
+  //       Uri.parse(url),
+  //       headers: {"Content-Type": "application/json"},
+  //       body: jsonEncode(formData.value),
+  //     );
+
+  //     if (response.statusCode == 200 || response.statusCode == 201) {
+  //       Get.snackbar("Saved", "Allotment Saved");
+  //       getLabExternal();
+  //       clearAll(formKey: formKey, startDateController: startDateController, endDateController: endDateController);
+  //     }
+
+  //     else if (response.statusCode == 400) {
+  //       final responseBody = jsonDecode(response.body);
+  //       final conflictMessage = responseBody["error"] ?? "Unknown conflict";
+
+  //       Get.defaultDialog(
+  //         title: "Conflict Detected",
+  //         middleText: conflictMessage,
+  //         textCancel: "Cancel",
+  //         textConfirm: "Continue",
+  //         barrierDismissible: false,
+  //         onCancel: () {
+  //           Get.back();
+  //           Get.snackbar("Cancelled", "Allotment process cancelled");
+  //           clearAll(formKey: formKey, startDateController: startDateController, endDateController: endDateController);
+  //         },
+  //         onConfirm: () async {
+  //           Get.back();
+
+  //           formData["allot"] = "continue";
+
+  //           try {
+  //             final continueResponse = await http.post(
+  //               Uri.parse(continueUrl),
+  //               headers: {"Content-Type": "application/json"},
+  //               body: jsonEncode(formData.value),
+  //             );
+
+  //             if (continueResponse.statusCode == 200 ||
+  //                 continueResponse.statusCode == 201) {
+  //               getLabExternal();
+  //               Get.snackbar("Saved", "Allotment Saved with Conflict");
+  //               clearAll(formKey: formKey, startDateController: startDateController, endDateController: endDateController);
+  //             } else {
+  //               Get.snackbar("Error", "Failed to save data with conflict.");
+  //             }
+  //           } catch (e) {
+  //             Get.snackbar("Error", "Exception while saving data: $e");
+  //           }
+  //         },
+  //       );
+  //     }
+
+  //     else {
+  //       Get.snackbar("Error", "Failed to save data.");
+  //     }
+  //   } catch (e) {
+  //     Get.snackbar("Error", "Exception while saving data: $e");
+  //   }
+  // }
+
   Future<void> saveData({
     required GlobalKey<FormState> formKey,
     required TextEditingController startDateController,
     required TextEditingController endDateController,
   }) async {
-    // ✅ Ensure radio button was selected
     if (!formData.containsKey("allot")) {
       Get.snackbar("Error", "Please select Continue or Repeat");
       return;
     }
+
+    // =====================================================
+    // 🆕 MULTI-LAB FLOW (ONLY WHEN >1 LAB SELECTED)
+    // =====================================================
+    if (selectedLabs.length > 1) {
+      final conflictUrl = "${Sharedvariable().ip}/lab/multi-lab-conflicts/";
+      final saveMultiUrl = "${Sharedvariable().ip}/lab/multi-lab-allotment/";
+
+      final conflictBody = {
+        "lab_names": selectedLabs.toList(),
+        "hours_allotted": formData["hours_allotted"],
+        "start_date": formData["start_date"],
+        "end_date": formData["end_date"],
+      };
+
+      try {
+        final conflictRes = await http.post(
+          Uri.parse(conflictUrl),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode(conflictBody),
+        );
+
+        // ✅ NO CONFLICT
+        if (conflictRes.statusCode == 200) {
+          //formData["lab_names"] = jsonEncode(selectedLabs.toList());
+          formData["lab_names"] = selectedLabs.toList();
+
+
+          final saveRes = await http.post(
+            Uri.parse(saveMultiUrl),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode(formData.value),
+          );
+
+          if (saveRes.statusCode == 200 || saveRes.statusCode == 201) {
+            Get.snackbar("Saved", "Allotment Saved");
+            getLabExternal();
+            clearAll(
+              formKey: formKey,
+              startDateController: startDateController,
+              endDateController: endDateController,
+            );
+          }
+          return;
+        }
+
+        // ⚠ CONFLICT FOUND
+        final conflicts = jsonDecode(conflictRes.body)["conflicts"];
+
+        Get.defaultDialog(
+          title: "Conflicts Found",
+          middleText: conflicts
+              .map((c) => "${c['lab']} → ${c['date']} → Hours ${c['hours']}")
+              .join("\n"),
+          textCancel: "Cancel",
+          textConfirm: "Continue",
+          onConfirm: () async {
+            Get.back();
+            //formData["lab_names"] = jsonEncode(selectedLabs.toList());
+            formData["lab_names"] = selectedLabs.toList();
+
+            formData["allot"] = "continue";
+
+            final forceSaveRes = await http.post(
+              Uri.parse(saveMultiUrl),
+              headers: {"Content-Type": "application/json"},
+              body: jsonEncode(formData.value),
+            );
+
+            if (forceSaveRes.statusCode == 200 ||
+                forceSaveRes.statusCode == 201) {
+              Get.snackbar("Saved", "Allotment Saved with Conflict");
+              getLabExternal();
+              clearAll(
+                formKey: formKey,
+                startDateController: startDateController,
+                endDateController: endDateController,
+              );
+            }
+          },
+        );
+      } catch (e) {
+        Get.snackbar("Error", "Exception: $e");
+        
+      }
+
+      return; // stop here for multi-lab
+    }
+
+    // =====================================================
+    // 🔵 ORIGINAL SINGLE LAB LOGIC (UNCHANGED)
+    // =====================================================
 
     var url = "${Sharedvariable().ip}/lab/laballot";
     var continueUrl = "${Sharedvariable().ip}/lab/laballot_continue";
@@ -101,10 +272,12 @@ class LabController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         Get.snackbar("Saved", "Allotment Saved");
         getLabExternal();
-        clearAll(formKey: formKey, startDateController: startDateController, endDateController: endDateController);
-      }
-
-      else if (response.statusCode == 400) {
+        clearAll(
+          formKey: formKey,
+          startDateController: startDateController,
+          endDateController: endDateController,
+        );
+      } else if (response.statusCode == 400) {
         final responseBody = jsonDecode(response.body);
         final conflictMessage = responseBody["error"] ?? "Unknown conflict";
 
@@ -117,36 +290,35 @@ class LabController extends GetxController {
           onCancel: () {
             Get.back();
             Get.snackbar("Cancelled", "Allotment process cancelled");
-            clearAll(formKey: formKey, startDateController: startDateController, endDateController: endDateController);
+            clearAll(
+              formKey: formKey,
+              startDateController: startDateController,
+              endDateController: endDateController,
+            );
           },
           onConfirm: () async {
             Get.back();
-
             formData["allot"] = "continue";
 
-            try {
-              final continueResponse = await http.post(
-                Uri.parse(continueUrl),
-                headers: {"Content-Type": "application/json"},
-                body: jsonEncode(formData.value),
-              );
+            final continueResponse = await http.post(
+              Uri.parse(continueUrl),
+              headers: {"Content-Type": "application/json"},
+              body: jsonEncode(formData.value),
+            );
 
-              if (continueResponse.statusCode == 200 ||
-                  continueResponse.statusCode == 201) {
-                getLabExternal();
-                Get.snackbar("Saved", "Allotment Saved with Conflict");
-                clearAll(formKey: formKey, startDateController: startDateController, endDateController: endDateController);
-              } else {
-                Get.snackbar("Error", "Failed to save data with conflict.");
-              }
-            } catch (e) {
-              Get.snackbar("Error", "Exception while saving data: $e");
+            if (continueResponse.statusCode == 200 ||
+                continueResponse.statusCode == 201) {
+              getLabExternal();
+              Get.snackbar("Saved", "Allotment Saved with Conflict");
+              clearAll(
+                formKey: formKey,
+                startDateController: startDateController,
+                endDateController: endDateController,
+              );
             }
           },
         );
-      }
-
-      else {
+      } else {
         Get.snackbar("Error", "Failed to save data.");
       }
     } catch (e) {
@@ -156,8 +328,8 @@ class LabController extends GetxController {
 
   Future<List<Labexternal>?> getLabExternal() async {
     var url2 = "${Sharedvariable().ip}/lab/labexternal";
-    var response =
-        await http.get(Uri.parse(url2), headers: {"Content-Type": "application/json"});
+    var response = await http
+        .get(Uri.parse(url2), headers: {"Content-Type": "application/json"});
 
     if (response.statusCode == 200) {
       List bodyjson = jsonDecode(response.body);
@@ -166,7 +338,8 @@ class LabController extends GetxController {
     return null;
   }
 
-  Future<void> fetchLabAllotmentsForRange(DateTime startDate, DateTime endDate) async {
+  Future<void> fetchLabAllotmentsForRange(
+      DateTime startDate, DateTime endDate) async {
     final formattedStart = DateFormat('dd-MM-yyyy').format(startDate);
     final formattedEnd = DateFormat('dd-MM-yyyy').format(endDate);
 
@@ -176,7 +349,8 @@ class LabController extends GetxController {
       final response = await http.post(
         Uri.parse(url),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"start_date": formattedStart, "end_date": formattedEnd}),
+        body: jsonEncode(
+            {"start_date": formattedStart, "end_date": formattedEnd}),
       );
 
       if (response.statusCode == 200) {
@@ -212,59 +386,49 @@ class LabController extends GetxController {
   }
 
 //get cummilative data within a date range
-Future<List<CumulativeData>> fetchCumulative(
-    DateTime start, DateTime end) async {
+  Future<List<CumulativeData>> fetchCumulative(
+      DateTime start, DateTime end) async {
+    final s = DateFormat("dd-MM-yyyy").format(start);
+    final e = DateFormat("dd-MM-yyyy").format(end);
 
-  final s = DateFormat("dd-MM-yyyy").format(start);
-  final e = DateFormat("dd-MM-yyyy").format(end);
+    final url =
+        "${Sharedvariable().ip}/lab/cumulative_external_range?start_date=$s&end_date=$e";
 
-  final url =
-      "${Sharedvariable().ip}/lab/cumulative_external_range?start_date=$s&end_date=$e";
-
-  final res = await http.get(Uri.parse(url));
-
-  if (res.statusCode == 200) {
-    final body = jsonDecode(res.body) as List;
-    return body.map((e) => CumulativeData.fromJson(e)).toList();
-  }
-
-  return [];
-}
-
-
-//free slot range
-Future<Map<String, dynamic>> fetchFreeSlotsRange(
-    DateTime start, DateTime end) async {
-
-  final s = DateFormat("dd-MM-yyyy").format(start);
-  final e = DateFormat("dd-MM-yyyy").format(end);
-
-  final url = "${Sharedvariable().ip}/lab/lab_free_slots_range";
-
-  try {
-    final res = await http.post(
-      Uri.parse(url),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "start_date": s,
-        "end_date": e,
-      }),
-    );
+    final res = await http.get(Uri.parse(url));
 
     if (res.statusCode == 200) {
-      return jsonDecode(res.body);
+      final body = jsonDecode(res.body) as List;
+      return body.map((e) => CumulativeData.fromJson(e)).toList();
     }
-  } catch (e) {
-   // print("Error fetching free slots: $e");
+
+    return [];
   }
 
-  return {"data": []};
-}
+//free slot range
+  Future<Map<String, dynamic>> fetchFreeSlotsRange(
+      DateTime start, DateTime end) async {
+    final s = DateFormat("dd-MM-yyyy").format(start);
+    final e = DateFormat("dd-MM-yyyy").format(end);
 
+    final url = "${Sharedvariable().ip}/lab/lab_free_slots_range";
 
+    try {
+      final res = await http.post(
+        Uri.parse(url),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "start_date": s,
+          "end_date": e,
+        }),
+      );
 
+      if (res.statusCode == 200) {
+        return jsonDecode(res.body);
+      }
+    } catch (e) {
+      // print("Error fetching free slots: $e");
+    }
 
-
-
-
+    return {"data": []};
+  }
 }
