@@ -150,7 +150,7 @@ class RangeMatrixPdfGenerator {
         build: (_) => [
 
           pw.Text(
-            "LAB ALLOTMENT (${filter.toUpperCase()})",
+            "LAB ALLOTMENT",
             style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
           ),
 

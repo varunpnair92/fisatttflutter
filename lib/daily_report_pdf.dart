@@ -95,7 +95,7 @@ class DailyGridPdfGenerator {
                 decoration: pw.BoxDecoration(border: pw.Border.all(width: 1)),
                 alignment: pw.Alignment.center,
                 child: pw.Text(
-                  "DAILY LAB ALLOTMENT (${filter.toUpperCase()})",
+                  "LAB ALLOTMENT ($formattedDate)",
                   style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
                 ),
               ),
