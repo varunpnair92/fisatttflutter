@@ -8,8 +8,17 @@ import 'lab_controller.dart';
 
 class DailyGridPdfGenerator {
   static final List<String> labOrder = [
-    "L1","L2","L3","L4","L5","L6","L7","L8","L9",
-    "MICRO PROCESSOR LAB","PG LAB",
+    "L1",
+    "L2",
+    "L3",
+    "L4",
+    "L5",
+    "L6",
+    "L7",
+    "L8",
+    "L9",
+    "MICRO PROCESSOR LAB",
+    "PG LAB",
   ];
 
   static final Map<String, String> displayName = {
@@ -17,7 +26,16 @@ class DailyGridPdfGenerator {
     "PG LAB": "PG"
   };
 
-  static final List<String> uiHours = ["H1","H2","H3","H4","LB","H5","H6","H7"];
+  static final List<String> uiHours = [
+    "H1",
+    "H2",
+    "H3",
+    "H4",
+    "LB",
+    "H5",
+    "H6",
+    "H7"
+  ];
 
   static final Map<String, String> hourNum = {
     "H1": "1",
@@ -33,9 +51,8 @@ class DailyGridPdfGenerator {
   static Future<void> generate({
     required DateTime date,
     required LabController labController,
-    required String filter,   // NEW FILTER PARAMETER
+    required String filter, // NEW FILTER PARAMETER
   }) async {
-
     final pdf = pw.Document();
     final df = DateFormat("dd-MM-yyyy");
 
@@ -61,6 +78,13 @@ class DailyGridPdfGenerator {
 
       for (var e in entries) {
         final hr = e["hours"]?.toString();
+
+        final subj = (e["subject_name"] ?? "").toString().toLowerCase().trim();
+        final cls = (e["class_name"] ?? "").toString().toLowerCase().trim();
+
+        // 🚫 IGNORE FREE ENTRIES
+        if (subj == "free" || cls == "free") continue;
+
         if (hr != null && hr.isNotEmpty) {
           table[lab]![hr] = e;
         }
@@ -78,7 +102,8 @@ class DailyGridPdfGenerator {
     final greenColor = PdfColor.fromInt(0xFF90EE90);
     final redColor = PdfColor.fromInt(0xFFFFA0A0);
 
-    final headerStyle = pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold);
+    final headerStyle =
+        pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold);
     final cellStyle = pw.TextStyle(fontSize: 9);
 
     pdf.addPage(
@@ -96,7 +121,8 @@ class DailyGridPdfGenerator {
                 alignment: pw.Alignment.center,
                 child: pw.Text(
                   "LAB ALLOTMENT ($formattedDate)",
-                  style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+                  style: pw.TextStyle(
+                      fontSize: 18, fontWeight: pw.FontWeight.bold),
                 ),
               ),
 
@@ -116,7 +142,8 @@ class DailyGridPdfGenerator {
                     child: pw.Text("LAB", style: headerStyle),
                   ),
                   ...List.generate(uiHours.length, (i) {
-                    final w = (i == uiHours.length - 1) ? lastHourWidth : hourWidth;
+                    final w =
+                        (i == uiHours.length - 1) ? lastHourWidth : hourWidth;
                     return pw.Container(
                       width: w,
                       height: 32,
@@ -168,7 +195,7 @@ class DailyGridPdfGenerator {
     required pw.TextStyle headerStyle,
     required pw.TextStyle cellStyle,
   }) {
-    List<String> hourOrder = ["1","2","3","4","8","5","6","7"];
+    List<String> hourOrder = ["1", "2", "3", "4", "8", "5", "6", "7"];
     List<pw.Widget> cells = [];
 
     cells.add(
@@ -198,9 +225,8 @@ class DailyGridPdfGenerator {
       final cls = entry["class_name"] ?? "";
       final ext = entry["external"]?.toString()?.toLowerCase() ?? "no";
 
-      final PdfColor color = (ext == "external" || ext == "yes")
-          ? redColor
-          : greenColor;
+      final PdfColor color =
+          (ext == "external" || ext == "yes") ? redColor : greenColor;
 
       int span = 1;
       int j = i + 1;
@@ -214,7 +240,8 @@ class DailyGridPdfGenerator {
             next["external"].toString().toLowerCase() == ext) {
           span++;
           j++;
-        } else break;
+        } else
+          break;
       }
 
       double mergedWidth = 0;

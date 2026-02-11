@@ -8,16 +8,21 @@ import 'package:open_file/open_file.dart';
 import 'lab_controller.dart';
 
 class RangeMatrixPdfGenerator {
-
   /// LABS TO SHOW
   static final List<String> labOrder = [
-    'L1','L2','L3','L4','L5','L6','L7','L8','L9',
+    'L1',
+    'L2',
+    'L3',
+    'L4',
+    'L5',
+    'L6',
+    'L7',
+    'L8',
+    'L9',
     'PG LAB'
   ];
 
-  static final Map<String,String> displayName = {
-    "PG LAB":"PG"
-  };
+  static final Map<String, String> displayName = {"PG LAB": "PG"};
 
   /// ✅ TIMETABLE-AWARE HOUR FORMAT
   /// Order: 1,2,3,4,LB,5,6,7  (LB = 8)
@@ -30,9 +35,7 @@ class RangeMatrixPdfGenerator {
     final unique = hours.toSet().toList();
 
     // sort by timetable order
-    unique.sort(
-      (a, b) => order.indexOf(a).compareTo(order.indexOf(b))
-    );
+    unique.sort((a, b) => order.indexOf(a).compareTo(order.indexOf(b)));
 
     String label(int h) => h == 8 ? "LB" : h.toString();
 
@@ -52,14 +55,9 @@ class RangeMatrixPdfGenerator {
 
   /// FILTER LOGIC
   static bool matchFilter(dynamic value, String filter) {
+    final ext = (value ?? "").toString().toLowerCase().trim();
 
-    final ext = (value ?? "")
-        .toString()
-        .toLowerCase()
-        .trim();
-
-    final isExternal =
-        ext.contains("yes") || ext.contains("external");
+    final isExternal = ext.contains("yes") || ext.contains("external");
 
     if (filter == "external") return isExternal;
     if (filter == "internal") return !isExternal;
@@ -73,50 +71,49 @@ class RangeMatrixPdfGenerator {
     required LabController labController,
     required String filter,
   }) async {
-
     final pdf = pw.Document();
     final df = DateFormat('dd-MM-yyyy');
 
     /// -------- DATE LIST --------
     List<DateTime> dates = [];
     DateTime d = startDate;
-    while(!d.isAfter(endDate)) {
+    while (!d.isAfter(endDate)) {
       dates.add(d);
       d = d.add(const Duration(days: 1));
     }
 
     /// -------- MATRIX --------
-    final Map<String, Map<String, List<Map<String,dynamic>>>> matrix = {};
+    final Map<String, Map<String, List<Map<String, dynamic>>>> matrix = {};
 
     for (final date in dates) {
-
       final dateStr = df.format(date);
       matrix[dateStr] = {};
 
       await labController.fetchLabAllotmentsForDate(date);
 
       for (final lab in labOrder) {
+        final allotments = (labController.labAllotments[lab] ?? [])
+            .cast<Map<String, dynamic>>();
 
-        final allotments =
-          (labController.labAllotments[lab] ?? [])
-            .cast<Map<String,dynamic>>();
-
-        final grouped = <String, Map<String,dynamic>>{};
+        final grouped = <String, Map<String, dynamic>>{};
 
         for (var e in allotments) {
-
           if (!matchFilter(e["external"], filter)) continue;
 
+          final subj =
+              (e["subject_name"] ?? "").toString().toLowerCase().trim();
+          final cls = (e["class_name"] ?? "").toString().toLowerCase().trim();
+
+          // 🚫 SKIP FREE ENTRIES
+          if (subj == "free" || cls == "free") continue;
+
           final key =
-            "${e['class_name']}_${e['subject_name']}_${e['external']}";
+              "${e['class_name']}_${e['subject_name']}_${e['external']}";
 
-          final hour =
-            int.tryParse(
-              e["hours"]?.toString()
-              ?? e["hours_allotted"]?.toString()
-              ?? "0"
-            ) ?? 0;
-
+          final hour = int.tryParse(e["hours"]?.toString() ??
+                  e["hours_allotted"]?.toString() ??
+                  "0") ??
+              0;
           if (!grouped.containsKey(key)) {
             grouped[key] = {
               "class_name": e["class_name"],
@@ -134,7 +131,7 @@ class RangeMatrixPdfGenerator {
     }
 
     /// -------- STYLES --------
-    final blue  = PdfColor.fromInt(0xFFADD8E6);
+    final blue = PdfColor.fromInt(0xFFADD8E6);
     final green = PdfColor.fromInt(0xFF90EE90);
     final border = pw.BoxDecoration(border: pw.Border.all());
 
@@ -148,7 +145,6 @@ class RangeMatrixPdfGenerator {
         pageFormat: PdfPageFormat.a4.landscape,
         margin: const pw.EdgeInsets.all(10),
         build: (_) => [
-
           pw.Text(
             "LAB ALLOTMENT",
             style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
@@ -165,7 +161,6 @@ class RangeMatrixPdfGenerator {
 
           /// HEADER
           pw.Row(children: [
-
             pw.Container(
               width: dateColWidth,
               height: 30,
@@ -176,28 +171,23 @@ class RangeMatrixPdfGenerator {
                 style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
               ),
             ),
-
-            ...labOrder.map((lab)=>
-              pw.Container(
-                width: labColWidth,
-                height: 30,
-                alignment: pw.Alignment.center,
-                decoration: border,
-                child: pw.Text(
-                  displayName[lab] ?? lab,
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                ),
-              )
-            ),
+            ...labOrder.map((lab) => pw.Container(
+                  width: labColWidth,
+                  height: 30,
+                  alignment: pw.Alignment.center,
+                  decoration: border,
+                  child: pw.Text(
+                    displayName[lab] ?? lab,
+                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                  ),
+                )),
           ]),
 
           pw.SizedBox(height: 3),
 
           /// ROWS
-          ...matrix.entries.map((dateEntry){
-
+          ...matrix.entries.map((dateEntry) {
             return pw.Row(children: [
-
               pw.Container(
                 width: dateColWidth,
                 height: 85,
@@ -205,9 +195,7 @@ class RangeMatrixPdfGenerator {
                 decoration: border,
                 child: pw.Text(dateEntry.key),
               ),
-
-              ...labOrder.map((lab){
-
+              ...labOrder.map((lab) {
                 final todays = dateEntry.value[lab] ?? [];
 
                 if (todays.isEmpty) {
@@ -227,22 +215,19 @@ class RangeMatrixPdfGenerator {
                   decoration: border,
                   child: pw.Column(
                     mainAxisAlignment: pw.MainAxisAlignment.center,
-                    children: todays.map((e){
-
-                      final hours =
-                        (e["hours"] as List<int>);
+                    children: todays.map((e) {
+                      final hours = (e["hours"] as List<int>);
 
                       final hrStr = formatHourRange(hours);
 
-                      final external =
-                        (e["external"] ?? "")
-                          .toString()
-                          .toLowerCase()
-                          .contains("yes") ||
-                        (e["external"] ?? "")
-                          .toString()
-                          .toLowerCase()
-                          .contains("external");
+                      final external = (e["external"] ?? "")
+                              .toString()
+                              .toLowerCase()
+                              .contains("yes") ||
+                          (e["external"] ?? "")
+                              .toString()
+                              .toLowerCase()
+                              .contains("external");
 
                       final color = external ? green : blue;
 
@@ -259,7 +244,6 @@ class RangeMatrixPdfGenerator {
                           style: pw.TextStyle(fontSize: 8),
                         ),
                       );
-
                     }).toList(),
                   ),
                 );
