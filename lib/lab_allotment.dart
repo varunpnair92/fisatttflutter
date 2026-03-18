@@ -11,6 +11,8 @@ import 'package:intl/intl.dart';
 class LabAllotmentPage extends StatelessWidget {
   final LabController labController = Get.put(LabController());
 
+   LabAllotmentPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -213,7 +215,7 @@ class LabAllotmentPage extends StatelessWidget {
 
                             final newLab = await Get.dialog<String>(
                               SimpleDialog(
-                                title: Text("Move to which Lab?"),
+                                title: const Text("Move to which Lab?"),
                                 children: [
                                   ...labs.map((l) => SimpleDialogOption(
                                         child: Text(l),

@@ -84,12 +84,12 @@ class RangeMatrixFreeSlotsPdfGenerator {
     }
 
     /// -------- STYLES --------
-    final red = PdfColor.fromInt(0xFFFFCCCC);
+    const red = PdfColor.fromInt(0xFFFFCCCC);
     final border = pw.BoxDecoration(border: pw.Border.all());
 
     /// -------- WIDTHS --------
     final pageWidth = PdfPageFormat.a4.landscape.width - 20;
-    final dateColWidth = 90.0;
+    const dateColWidth = 90.0;
     final labColWidth = (pageWidth - dateColWidth) / labOrder.length;
 
     pdf.addPage(
@@ -169,17 +169,17 @@ class RangeMatrixFreeSlotsPdfGenerator {
                   width: labColWidth,
                   height: 70,
                   alignment: pw.Alignment.center,
-                  padding: pw.EdgeInsets.all(5),
+                  padding: const pw.EdgeInsets.all(5),
                   decoration: border,
                   child: hours.isEmpty
                       ? pw.Text("")
                       : pw.Container(
-                          padding: pw.EdgeInsets.all(5),
+                          padding: const pw.EdgeInsets.all(5),
                           color: red,
                           child: pw.Text(
                             "Free: $hours",
                             textAlign: pw.TextAlign.center,
-                            style: pw.TextStyle(fontSize: 10),
+                            style: const pw.TextStyle(fontSize: 10),
                           ),
                         ),
                 );

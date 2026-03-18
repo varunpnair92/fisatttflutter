@@ -5,22 +5,24 @@ import 'package:get/get.dart';
 class GoogleSignInPage extends StatelessWidget {
   final GoogleSignInController controller = Get.put(GoogleSignInController());
 
+   GoogleSignInPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Google Sign In"),
+        title: const Text("Google Sign In"),
         centerTitle: true,
       ),
       body: Center(
         child: Obx(() => controller.isSigningIn.value
-            ? CircularProgressIndicator()
+            ? const CircularProgressIndicator()
             : ElevatedButton.icon(
-                icon: Icon(Icons.login),
-                label: Text("Sign in with Google"),
+                icon: const Icon(Icons.login),
+                label: const Text("Sign in with Google"),
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  textStyle: TextStyle(fontSize: 18),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  textStyle: const TextStyle(fontSize: 18),
                 ),
                 onPressed: controller.signInWithGoogle,
               )),

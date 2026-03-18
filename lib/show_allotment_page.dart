@@ -241,10 +241,11 @@ Hours: $hours
                 onChanged: (v) {
                   setState(() {
                     isCheckBoxChecked = v ?? false;
-                    if (isCheckBoxChecked)
+                    if (isCheckBoxChecked) {
                       fetchFreeLabSlots();
-                    else
+                    } else {
                       freeLabSlots.clear();
+                    }
                   });
                 },
               ),
@@ -316,10 +317,11 @@ Hours: $hours
                 value: selectedIds.contains(allot.id),
                 onChanged: (v) {
                   setState(() {
-                    if (v == true)
+                    if (v == true) {
                       selectedIds.add(allot.id);
-                    else
+                    } else {
                       selectedIds.remove(allot.id);
+                    }
                   });
                 },
               ),

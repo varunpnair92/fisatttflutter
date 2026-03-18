@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.fisat_timetable"
-        minSdk = 23
+        minSdkVersion = flutter.minSdkVersion
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class LabCalendar extends StatefulWidget {
+  const LabCalendar({super.key});
+
   @override
   _LabCalendarState createState() => _LabCalendarState();
 }
@@ -30,7 +32,7 @@ class _LabCalendarState extends State<LabCalendar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Lab Calendar')),
+      appBar: AppBar(title: const Text('Lab Calendar')),
       body: TableCalendar(
   firstDay: DateTime(2025, 1, 1), 
   lastDay: DateTime(2025, 12, 31), 

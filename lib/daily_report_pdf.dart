@@ -92,31 +92,31 @@ class DailyGridPdfGenerator {
     }
 
     final pageWidth = PdfPageFormat.a4.landscape.width - 20;
-    final labColWidth = 55.0;
+    const labColWidth = 55.0;
     final remaining = pageWidth - labColWidth;
 
     final hourWidth = (remaining / uiHours.length).floorToDouble();
     final lastHourWidth = remaining - hourWidth * (uiHours.length - 1);
 
-    final freeColor = PdfColor.fromInt(0xFFD3D3D3);
-    final greenColor = PdfColor.fromInt(0xFF90EE90);
-    final redColor = PdfColor.fromInt(0xFFFFA0A0);
+    const freeColor = PdfColor.fromInt(0xFFD3D3D3);
+    const greenColor = PdfColor.fromInt(0xFF90EE90);
+    const redColor = PdfColor.fromInt(0xFFFFA0A0);
 
     final headerStyle =
         pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold);
-    final cellStyle = pw.TextStyle(fontSize: 9);
+    const cellStyle = pw.TextStyle(fontSize: 9);
 
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4.landscape,
-        margin: pw.EdgeInsets.all(10),
+        margin: const pw.EdgeInsets.all(10),
         build: (_) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Container(
                 width: double.infinity,
-                padding: pw.EdgeInsets.all(8),
+                padding: const pw.EdgeInsets.all(8),
                 decoration: pw.BoxDecoration(border: pw.Border.all(width: 1)),
                 alignment: pw.Alignment.center,
                 child: pw.Text(
@@ -178,7 +178,7 @@ class DailyGridPdfGenerator {
     );
 
     final dir = await getApplicationDocumentsDirectory();
-    final file = File("${dir.path}/daily_lab_${formattedDate}.pdf");
+    final file = File("${dir.path}/daily_lab_$formattedDate.pdf");
     await file.writeAsBytes(await pdf.save());
     await OpenFile.open(file.path);
   }
@@ -223,7 +223,7 @@ class DailyGridPdfGenerator {
 
       final subj = entry["subject_name"] ?? "";
       final cls = entry["class_name"] ?? "";
-      final ext = entry["external"]?.toString()?.toLowerCase() ?? "no";
+      final ext = entry["external"]?.toString().toLowerCase() ?? "no";
 
       final PdfColor color =
           (ext == "external" || ext == "yes") ? redColor : greenColor;
@@ -240,8 +240,9 @@ class DailyGridPdfGenerator {
             next["external"].toString().toLowerCase() == ext) {
           span++;
           j++;
-        } else
+        } else {
           break;
+        }
       }
 
       double mergedWidth = 0;
@@ -255,7 +256,7 @@ class DailyGridPdfGenerator {
           height: 34,
           alignment: pw.Alignment.center,
           decoration: pw.BoxDecoration(border: pw.Border.all(), color: color),
-          padding: pw.EdgeInsets.all(3),
+          padding: const pw.EdgeInsets.all(3),
           child: pw.Text(
             "$subj\n$cls",
             style: cellStyle,

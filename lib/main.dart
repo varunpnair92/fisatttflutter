@@ -35,12 +35,12 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       getPages: [
-        GetPage(name: "/", page: () => HomePage()),
+        GetPage(name: "/", page: () => const HomePage()),
         GetPage(name: "/start", page: () => StartupPage()),
-        GetPage(name: "/user", page: () => HomePageU()),
+        GetPage(name: "/user", page: () => const HomePageU()),
         GetPage(name: "/google", page: () => GoogleSignInPage()),
       ],
-      initialRoute: "/start",
+      initialRoute: "/",
     );
   }
 }

@@ -9,6 +9,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ShowAllotmentPageU extends StatefulWidget {
+  const ShowAllotmentPageU({super.key});
+
   @override
   _ShowAllotmentPageState createState() => _ShowAllotmentPageState();
 }
@@ -55,10 +57,10 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPageU> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Lab Allotments'),
+        title: const Text('Lab Allotments'),
         actions: [
           IconButton(
-            icon: Icon(Icons.calendar_today),
+            icon: const Icon(Icons.calendar_today),
             onPressed: () async {
               DateTime now = DateTime.now();
               DateTime firstDate = DateTime(2025);
@@ -88,7 +90,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPageU> {
           ),
           Row(
             children: [
-              Text('Show Free Slots'),
+              const Text('Show Free Slots'),
               Checkbox(
                 value: isCheckBoxChecked,
                 onChanged: (bool? value) {
@@ -113,7 +115,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPageU> {
 
   Widget _buildFreeLabSlotsView() {
     if (freeLabSlots.isEmpty) {
-      return Center(child: Text('No free lab slots available'));
+      return const Center(child: Text('No free lab slots available'));
     }
 
     return ListView.builder(
@@ -121,7 +123,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPageU> {
       itemBuilder: (context, index) {
         final slot = freeLabSlots[index];
         return Card(
-          margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
           child: ListTile(
             title: Text('Lab: ${slot["lab_name"]}'),
             subtitle: Text('Free Hours: ${slot["hours_free"]}'),
@@ -134,7 +136,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPageU> {
   Widget _buildAllotmentsView() {
     return Obx(() {
       if (examController.apiData.isEmpty) {
-        return Center(child: Text('No allotments available'));
+        return const Center(child: Text('No allotments available'));
       }
 
       List<Labexternal> sortedAllotments =
@@ -143,7 +145,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPageU> {
           _filterAllotmentsByDate(sortedAllotments);
 
       if (filteredAllotments.isEmpty) {
-        return Center(
+        return const Center(
             child: Text('No allotments available for the selected date'));
       }
 
@@ -152,9 +154,9 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPageU> {
         itemBuilder: (context, index) {
           final allotment = filteredAllotments[index];
           return Card(
-            margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
             child: ListTile(
-              contentPadding: EdgeInsets.all(16.0),
+              contentPadding: const EdgeInsets.all(16.0),
               title: Text('Date: ${allotment.startDate}'),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,7 +181,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPageU> {
 
                 // Toast / SnackBar
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Copied to clipboard")),
+                  const SnackBar(content: Text("Copied to clipboard")),
                 );
               },
             ),

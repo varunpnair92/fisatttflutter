@@ -16,7 +16,7 @@ class HomePage extends StatelessWidget {
           index: pageIndex,
           children: [
             LabAllotmentPage(),
-            AllotmentPage(),
+            const AllotmentPage(),
           ],
         );
       }),
