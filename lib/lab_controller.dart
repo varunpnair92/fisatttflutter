@@ -163,7 +163,7 @@ class LabController extends GetxController {
     required TextEditingController endDateController,
   }) async {
     if (!formData.containsKey("allot")) {
-      Get.snackbar("Error", "Please select Continue or Repeat");
+      safeSnackbar("Error", "Please select Continue or Repeat");
       return;
     }
 
@@ -201,7 +201,7 @@ class LabController extends GetxController {
           );
 
           if (saveRes.statusCode == 200 || saveRes.statusCode == 201) {
-            Get.snackbar("Saved", "Allotment Saved");
+            safeSnackbar("Saved", "Allotment Saved");
             getLabExternal();
             clearAll(
               formKey: formKey,
@@ -237,7 +237,7 @@ class LabController extends GetxController {
 
             if (forceSaveRes.statusCode == 200 ||
                 forceSaveRes.statusCode == 201) {
-              Get.snackbar("Saved", "Allotment Saved with Conflict");
+              safeSnackbar("Saved", "Allotment Saved with Conflict");
               getLabExternal();
               clearAll(
                 formKey: formKey,
@@ -248,7 +248,7 @@ class LabController extends GetxController {
           },
         );
       } catch (e) {
-        Get.snackbar("Error", "Exception: $e");
+        safeSnackbar("Error", "Exception: $e");
         
       }
 
@@ -270,7 +270,7 @@ class LabController extends GetxController {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar("Saved", "Allotment Saved");
+        safeSnackbar("Saved", "Allotment Saved");
         getLabExternal();
         clearAll(
           formKey: formKey,
@@ -289,7 +289,7 @@ class LabController extends GetxController {
           barrierDismissible: false,
           onCancel: () {
             Get.back();
-            Get.snackbar("Cancelled", "Allotment process cancelled");
+            safeSnackbar("Cancelled", "Allotment process cancelled");
             clearAll(
               formKey: formKey,
               startDateController: startDateController,
@@ -309,7 +309,7 @@ class LabController extends GetxController {
             if (continueResponse.statusCode == 200 ||
                 continueResponse.statusCode == 201) {
               getLabExternal();
-              Get.snackbar("Saved", "Allotment Saved with Conflict");
+              safeSnackbar("Saved", "Allotment Saved with Conflict");
               clearAll(
                 formKey: formKey,
                 startDateController: startDateController,
@@ -319,10 +319,10 @@ class LabController extends GetxController {
           },
         );
       } else {
-        Get.snackbar("Error", "Failed to save data.");
+        safeSnackbar("Error", "Failed to save data.");
       }
     } catch (e) {
-      Get.snackbar("Error", "Exception while saving data: $e");
+      safeSnackbar("Error", "Exception while saving data: $e");
     }
   }
 
@@ -383,6 +383,47 @@ class LabController extends GetxController {
     startDateController?.clear();
     endDateController?.clear();
     update();
+  }
+
+  void safeSnackbar(String title, String message,
+      {Duration duration = const Duration(seconds: 2)}) {
+    try {
+      // Prefer native ScaffoldMessenger if context exists.
+      final ctx = Get.context;
+      if (ctx != null) {
+        final messenger = ScaffoldMessenger.of(ctx);
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('$title: $message'),
+            duration: duration,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+
+      // Fallback to Get.snackbar for no-context path.
+      if (Get.isSnackbarOpen) {
+        Get.closeCurrentSnackbar();
+      }
+
+      Get.snackbar(
+        title,
+        message,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: duration,
+        dismissDirection: DismissDirection.horizontal,
+        animationDuration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.all(12),
+        borderRadius: 12,
+        backgroundColor: Colors.black87,
+        colorText: Colors.white,
+        instantInit: true,
+      );
+    } catch (e, st) {
+      debugPrint('safeSnackbar failed: $e\n$st');
+    }
   }
 
 //get cummilative data within a date range

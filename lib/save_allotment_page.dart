@@ -253,7 +253,7 @@ class SaveAllotmentPage extends StatelessWidget {
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       if (!labController.formData.containsKey('allot')) {
-                        Get.snackbar(
+                        labController.safeSnackbar(
                             "Error", "Please select Continue or Repeat");
                         return;
                       }
@@ -290,7 +290,7 @@ class SaveAllotmentPage extends StatelessWidget {
                             endDateController: _endDateController,
                           );
                         } else {
-                          Get.snackbar(
+                          labController.safeSnackbar(
                               "Invalid", "From hour must be ≤ To hour");
                         }
                       }
@@ -302,7 +302,7 @@ class SaveAllotmentPage extends StatelessWidget {
                   onPressed: () async {
                     if (_startDateController.text.isEmpty ||
                         _endDateController.text.isEmpty) {
-                      Get.snackbar("Error", "Select Start & End Dates");
+                      labController.safeSnackbar("Error", "Select Start & End Dates");
                       return;
                     }
 
@@ -324,7 +324,7 @@ class SaveAllotmentPage extends StatelessWidget {
                   onPressed: () {
                     if (_startDateController.text.isEmpty ||
                         _endDateController.text.isEmpty) {
-                      Get.snackbar("Error", "Select both start & end dates");
+                      labController.safeSnackbar("Error", "Select both start & end dates");
                       return;
                     }
 
@@ -363,7 +363,7 @@ class SaveAllotmentPage extends StatelessWidget {
                           ),
                         );
                       } else {
-                        Get.snackbar("Error", "Select both start & end dates");
+                        labController.safeSnackbar("Error", "Select both start & end dates");
                       }
                     },
                     child: const Text('GR'),
@@ -372,7 +372,7 @@ class SaveAllotmentPage extends StatelessWidget {
                     onPressed: () async {
                       if (_startDateController.text.isEmpty ||
                           _endDateController.text.isEmpty) {
-                        Get.snackbar("Error", "Select Start & End Dates");
+                        labController.safeSnackbar("Error", "Select Start & End Dates");
                         return;
                       }
 
@@ -400,7 +400,7 @@ class SaveAllotmentPage extends StatelessWidget {
                   ElevatedButton(
                     onPressed: () async {
                       if (_startDateController.text.isEmpty) {
-                        Get.snackbar("Error", "Select Start Date first.");
+                        labController.safeSnackbar("Error", "Select Start Date first.");
                         return;
                       }
 
