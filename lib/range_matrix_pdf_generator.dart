@@ -276,7 +276,7 @@ class RangeMatrixPdfGenerator {
       await OpenFile.open(file.path);
 
     } catch (e) {
-      print("PDF ERROR: $e");
+      //print("PDF ERROR: $e");
     }
   }
 
