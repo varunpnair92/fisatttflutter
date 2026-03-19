@@ -20,13 +20,13 @@ class RangeMatrixPdfGenerator {
 
   static const List<int> hourOrder = [1,2,3,4,8,5,6,7];
 
+  /// ✅ CHANGED: To → -
   static String formatBlock(List<int> block) {
     String label(int h) => h == 8 ? "LB" : h.toString();
     if (block.length == 1) return label(block.first);
-    return "${label(block.first)} To ${label(block.last)}";
+    return "${label(block.first)}-${label(block.last)}"; // ✅ FIX
   }
 
-  /// ✅ FILTER FUNCTION
   static bool matchFilter(dynamic value, String filter) {
     final ext = (value ?? "").toString().toLowerCase().trim();
     final isExternal = ext.contains("yes") || ext.contains("external");
@@ -55,7 +55,6 @@ class RangeMatrixPdfGenerator {
       final pdf = pw.Document();
       final df = DateFormat('dd-MM-yyyy');
 
-      /// DATE LIST
       List<DateTime> dates = [];
       DateTime d = startDate;
       while (!d.isAfter(endDate)) {
@@ -63,7 +62,6 @@ class RangeMatrixPdfGenerator {
         d = d.add(const Duration(days: 1));
       }
 
-      /// MATRIX BUILD
       final matrix = <String, Map<String, List<Map<String, dynamic>>>>{};
 
       for (final date in dates) {
@@ -84,7 +82,6 @@ class RangeMatrixPdfGenerator {
 
           for (var e in filtered) {
 
-            /// 🔥 APPLY FILTER
             if (!matchFilter(e["external"], filter)) continue;
 
             final key =
@@ -105,7 +102,6 @@ class RangeMatrixPdfGenerator {
         }
       }
 
-      /// COLORS
       const blue = PdfColor.fromInt(0xFFADD8E6);
       const green = PdfColor.fromInt(0xFF90EE90);
       const orange = PdfColor.fromInt(0xFFFFCC80);
@@ -134,7 +130,6 @@ class RangeMatrixPdfGenerator {
 
             pw.SizedBox(height: 10),
 
-            /// HEADER
             pw.Row(children: [
               pw.Container(
                 width: dateColWidth,
@@ -155,7 +150,6 @@ class RangeMatrixPdfGenerator {
 
             pw.SizedBox(height: 5),
 
-            /// ROWS
             ...matrix.entries.map((dateEntry) {
 
               final labBlocks = <String, List<Map<String, dynamic>>>{};
@@ -175,10 +169,15 @@ class RangeMatrixPdfGenerator {
                   final entries = b["entries"];
                   final hours = (b["hours"] as List).cast<int>();
 
-                  /// 🔥 SKIP FREE HEIGHT WHEN FILTERED
                   if (filter != "both" && entries.isEmpty) continue;
 
-                  final text = entries.isEmpty
+                  /// ✅ FIX: FREE DETECTION
+                  bool isFree = entries.isEmpty ||
+                      entries.any((e) =>
+                          (e['subject_name'] ?? '').toString().toLowerCase().trim() == 'free' ||
+                          (e['class_name'] ?? '').toString().toLowerCase().trim() == 'free');
+
+                  final text = isFree
                       ? "FREE\nHrs: ${formatBlock(hours)}"
                       : entries
                               .map((e) =>
@@ -194,7 +193,6 @@ class RangeMatrixPdfGenerator {
 
               return pw.Row(children: [
 
-                /// DATE
                 pw.Container(
                   width: dateColWidth,
                   height: maxHeight,
@@ -204,7 +202,6 @@ class RangeMatrixPdfGenerator {
                       style: pw.TextStyle(font: ttf)),
                 ),
 
-                /// LABS
                 ...labOrder.map((lab) {
 
                   final blocks = labBlocks[lab]!;
@@ -220,12 +217,15 @@ class RangeMatrixPdfGenerator {
                         final entries = b["entries"];
                         final hours = (b["hours"] as List).cast<int>();
 
-                        /// 🔥 HIDE FREE BLOCKS
                         if (filter != "both" && entries.isEmpty) {
                           return pw.SizedBox();
                         }
 
-                        final isFree = entries.isEmpty;
+                        /// ✅ FIX: FREE DETECTION
+                        bool isFree = entries.isEmpty ||
+                            entries.any((e) =>
+                                (e['subject_name'] ?? '').toString().toLowerCase().trim() == 'free' ||
+                                (e['class_name'] ?? '').toString().toLowerCase().trim() == 'free');
 
                         final color = isFree
                             ? orange
@@ -279,8 +279,6 @@ class RangeMatrixPdfGenerator {
       print("PDF ERROR: $e");
     }
   }
-
-  /// ================= UTIL =================
 
   static List<int> _parseHours(dynamic value) {
     if (value == null) return [];
