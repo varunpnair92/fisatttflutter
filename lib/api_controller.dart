@@ -1,6 +1,5 @@
 import 'package:fisat_timetable/lab_external.dart';
 import 'package:fisat_timetable/shared.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -54,31 +53,19 @@ class ExamController extends GetxController {
     
   }
 
-  Future<void> deleteAllotment(int id) async {
+  Future<bool> deleteAllotment(int id) async {
     try {
       final response = await http.delete(
           Uri.parse("${Sharedvariable().ip}/lab/delete_lab_allotment/$id/"));
 
       if (response.statusCode == 200) {
-        apiData.removeWhere(
-            (allotment) => allotment.id == id); // ✅ Auto-refresh UI
+        apiData.removeWhere((allotment) => allotment.id == id);
         apiData.refresh();
-        Get.snackbar("Success", "Allotment deleted successfully",
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green,
-            colorText: Colors.white);
-      } else {
-        Get.snackbar("Error", "Failed to delete allotment",
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white);
+        return true;
       }
+      return false;
     } catch (e) {
-      //print("Error deleting allotment: $e");
-      Get.snackbar("Error", "Something went wrong",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+      return false;
     }
   }
 }

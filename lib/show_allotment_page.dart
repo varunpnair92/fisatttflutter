@@ -137,7 +137,7 @@ Hours: $hours
       buttonColor: Colors.red,
       onConfirm: () async {
         // -------- DELETE --------
-        await examController.deleteAllotment(a.id);
+        bool deleted = await examController.deleteAllotment(a.id);
 
         // -------- FORMAT HOURS --------
         String hours = a.hoursAllotted
@@ -164,6 +164,20 @@ Hours: $hours
 
         Get.back();
         refreshPage();
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(deleted
+                ? 'Allotment deleted successfully'
+                : 'Failed to delete allotment'),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor:
+                deleted ? Colors.greenAccent.shade700 : Colors.redAccent,
+          ),
+        );
       },
     );
   }
