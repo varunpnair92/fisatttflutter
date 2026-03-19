@@ -381,6 +381,9 @@ class SaveAllotmentPage extends StatelessWidget {
                       final end = DateFormat('dd-MM-yyyy')
                           .parse(_endDateController.text);
 
+                      // 🔥 ADD HERE
+                      labController.labAllotmentsR.clear();
+
                       await labController.fetchLabAllotmentsForRange(
                           start, end);
 
@@ -389,6 +392,7 @@ class SaveAllotmentPage extends StatelessWidget {
                         endDate: end,
                         labController: labController,
                         filter: labController.pdfFilter.value,
+                        useRangeCache: true,
                       );
                     },
                     child: const Text("Date PDF"),
