@@ -31,21 +31,19 @@ class SaveAllotmentPage extends StatelessWidget {
 
   final List<String> hoursList = ['1', '2', '3', '4', 'LB', '5', '6', '7'];
 
-  SaveAllotmentPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Save Allotment')),
+      appBar: AppBar(title: Text('Save Allotment')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               DropdownButtonFormField<String>(
-                decoration: const InputDecoration(labelText: 'Lab Name'),
+                decoration: InputDecoration(labelText: 'Lab Name'),
                 items: labNames
                     .map(
                         (lab) => DropdownMenuItem(value: lab, child: Text(lab)))
@@ -67,7 +65,7 @@ class SaveAllotmentPage extends StatelessWidget {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               // ================= MULTIPLE LAB SELECT (NEW)
 
               Obx(() => InkWell(
@@ -76,7 +74,7 @@ class SaveAllotmentPage extends StatelessWidget {
                         context: context,
                         builder: (context) {
                           return AlertDialog(
-                            title: const Text("Select Labs"),
+                            title: Text("Select Labs"),
                             content: SingleChildScrollView(
                               child: Column(
                                 children: labNames.map((lab) {
@@ -99,7 +97,7 @@ class SaveAllotmentPage extends StatelessWidget {
                             actions: [
                               TextButton(
                                 onPressed: () => Get.back(),
-                                child: const Text("Done"),
+                                child: Text("Done"),
                               )
                             ],
                           );
@@ -107,7 +105,7 @@ class SaveAllotmentPage extends StatelessWidget {
                       );
                     },
                     child: InputDecorator(
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: "Multi Lab Selection",
                         border: OutlineInputBorder(),
                       ),
@@ -119,13 +117,13 @@ class SaveAllotmentPage extends StatelessWidget {
                     ),
                   )),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               Row(
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(labelText: 'From Hour'),
+                      decoration: InputDecoration(labelText: 'From Hour'),
                       items: hoursList
                           .map((hour) =>
                               DropdownMenuItem(value: hour, child: Text(hour)))
@@ -136,10 +134,10 @@ class SaveAllotmentPage extends StatelessWidget {
                           value == null ? 'Select from hour' : null,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(labelText: 'To Hour'),
+                      decoration: InputDecoration(labelText: 'To Hour'),
                       items: hoursList
                           .map((hour) =>
                               DropdownMenuItem(value: hour, child: Text(hour)))
@@ -153,27 +151,27 @@ class SaveAllotmentPage extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               TextFormField(
-                decoration: const InputDecoration(labelText: 'Subject Name'),
+                decoration: InputDecoration(labelText: 'Subject Name'),
                 onChanged: (value) =>
                     labController.formData['subject_name'] = value,
                 validator: (value) =>
                     value!.isEmpty ? 'Please enter subject name' : null,
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               TextFormField(
-                decoration: const InputDecoration(labelText: 'Class Name'),
+                decoration: InputDecoration(labelText: 'Class Name'),
                 onChanged: (value) =>
                     labController.formData['class_name'] = value,
                 validator: (value) =>
                     value!.isEmpty ? 'Please enter class name' : null,
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               _buildDateField(
                 'Start Date',
@@ -182,7 +180,7 @@ class SaveAllotmentPage extends StatelessWidget {
                 context,
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               _buildDateField(
                 'End Date',
@@ -191,9 +189,9 @@ class SaveAllotmentPage extends StatelessWidget {
                 context,
               ),
 
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
 
-              const Text('Allot:'),
+              Text('Allot:'),
 
               Obx(() => ListTile(
                     title: const Text('Continue'),
@@ -215,38 +213,38 @@ class SaveAllotmentPage extends StatelessWidget {
                     ),
                   )),
 
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
 
               // -------------------------------------------------------
               //     FILTER TOGGLE FOR PDF
               // -------------------------------------------------------
-              const Text("PDF Filter:",
+              Text("PDF Filter:",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               Obx(() => Row(
                     children: [
                       ChoiceChip(
-                        label: const Text("Internal"),
+                        label: Text("Internal"),
                         selected: labController.pdfFilter.value == "internal",
                         onSelected: (_) =>
                             labController.pdfFilter.value = "internal",
                       ),
-                      const SizedBox(width: 10),
+                      SizedBox(width: 10),
                       ChoiceChip(
-                        label: const Text("External"),
+                        label: Text("External"),
                         selected: labController.pdfFilter.value == "external",
                         onSelected: (_) =>
                             labController.pdfFilter.value = "external",
                       ),
-                      const SizedBox(width: 10),
+                      SizedBox(width: 10),
                       ChoiceChip(
-                        label: const Text("Both"),
+                        label: Text("Both"),
                         selected: labController.pdfFilter.value == "both",
                         onSelected: (_) =>
                             labController.pdfFilter.value = "both",
                       ),
                     ],
                   )),
-              const SizedBox(height: 25),
+              SizedBox(height: 25),
 
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 ElevatedButton(
@@ -296,7 +294,7 @@ class SaveAllotmentPage extends StatelessWidget {
                       }
                     }
                   },
-                  child: const Text('Save'),
+                  child: Text('Save'),
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -318,7 +316,7 @@ class SaveAllotmentPage extends StatelessWidget {
                       labController: labController,
                     );
                   },
-                  child: const Text("FreeS"),
+                  child: Text("Free Slots"),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -335,11 +333,11 @@ class SaveAllotmentPage extends StatelessWidget {
 
                     Get.to(() => CumulativePage(start: start, end: end));
                   },
-                  child: const Text("ESU"),
+                  child: const Text("External Summary"),
                 ),
               ]),
 
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -366,7 +364,7 @@ class SaveAllotmentPage extends StatelessWidget {
                         Get.snackbar("Error", "Select both start & end dates");
                       }
                     },
-                    child: const Text('GR'),
+                    child: Text('Generate Report'),
                   ),
                   ElevatedButton(
                     onPressed: () async {
@@ -381,9 +379,6 @@ class SaveAllotmentPage extends StatelessWidget {
                       final end = DateFormat('dd-MM-yyyy')
                           .parse(_endDateController.text);
 
-                      // 🔥 ADD HERE
-                      labController.labAllotmentsR.clear();
-
                       await labController.fetchLabAllotmentsForRange(
                           start, end);
 
@@ -392,10 +387,9 @@ class SaveAllotmentPage extends StatelessWidget {
                         endDate: end,
                         labController: labController,
                         filter: labController.pdfFilter.value,
-                       // useRangeCache: true,
                       );
                     },
-                    child: const Text("DwPDF"),
+                    child: Text("Date PDF"),
                   ),
                   ElevatedButton(
                     onPressed: () async {
@@ -415,7 +409,7 @@ class SaveAllotmentPage extends StatelessWidget {
                         filter: labController.pdfFilter.value, // PASS FILTER
                       );
                     },
-                    child: const Text("DPDF"),
+                    child: Text("Generate Daily PDF"),
                   ),
                 ],
               ),

@@ -26,7 +26,16 @@ class RangeMatrixPdfGenerator {
     return "${label(block.first)} To ${label(block.last)}";
   }
 
-  /// 🔥 DYNAMIC HEIGHT CALC
+  /// ✅ FILTER FUNCTION
+  static bool matchFilter(dynamic value, String filter) {
+    final ext = (value ?? "").toString().toLowerCase().trim();
+    final isExternal = ext.contains("yes") || ext.contains("external");
+
+    if (filter == "external") return isExternal;
+    if (filter == "internal") return !isExternal;
+    return true;
+  }
+
   static double _estimateBlockHeight(String text) {
     final lines = '\n'.allMatches(text).length + 1;
     return (lines * 12) + 14;
@@ -40,7 +49,6 @@ class RangeMatrixPdfGenerator {
   }) async {
 
     try {
-      /// ✅ LOAD FONT
       final fontData = await rootBundle.load("assets/fonts/Roboto-Regular.ttf");
       final ttf = pw.Font.ttf(fontData);
 
@@ -75,6 +83,9 @@ class RangeMatrixPdfGenerator {
           final grouped = <String, Map<String, dynamic>>{};
 
           for (var e in filtered) {
+
+            /// 🔥 APPLY FILTER
+            if (!matchFilter(e["external"], filter)) continue;
 
             final key =
                 "${e['class_name']}_${e['subject_name']}_${e['external']}_${e['date']}";
@@ -164,6 +175,9 @@ class RangeMatrixPdfGenerator {
                   final entries = b["entries"];
                   final hours = (b["hours"] as List).cast<int>();
 
+                  /// 🔥 SKIP FREE HEIGHT WHEN FILTERED
+                  if (filter != "both" && entries.isEmpty) continue;
+
                   final text = entries.isEmpty
                       ? "FREE\nHrs: ${formatBlock(hours)}"
                       : entries
@@ -205,6 +219,12 @@ class RangeMatrixPdfGenerator {
 
                         final entries = b["entries"];
                         final hours = (b["hours"] as List).cast<int>();
+
+                        /// 🔥 HIDE FREE BLOCKS
+                        if (filter != "both" && entries.isEmpty) {
+                          return pw.SizedBox();
+                        }
+
                         final isFree = entries.isEmpty;
 
                         final color = isFree
