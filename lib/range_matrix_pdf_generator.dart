@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
@@ -9,16 +10,7 @@ import 'lab_controller.dart';
 
 class RangeMatrixPdfGenerator {
   static final List<String> labOrder = [
-    'L1',
-    'L2',
-    'L3',
-    'L4',
-    'L5',
-    'L6',
-    'L7',
-    'L8',
-    'L9',
-    'PG LAB'
+    'L1','L2','L3','L4','L5','L6','L7','L8','L9','PG LAB'
   ];
 
   static final Map<String, String> displayName = {"PG LAB": "PG"};
@@ -45,20 +37,19 @@ class RangeMatrixPdfGenerator {
     required DateTime endDate,
     required LabController labController,
     required String filter,
-    bool useRangeCache = false,
-    bool debug = false,
   }) async {
     try {
+      /// ✅ LOAD FONT
+      final fontData = await rootBundle.load("assets/fonts/Roboto-Regular.ttf");
+      final ttf = pw.Font.ttf(fontData);
+
       final pdf = pw.Document();
       final df = DateFormat('dd-MM-yyyy');
 
-      // 🔥 FIX 1: FORCE RANGE DATA ONLY
-      final hasRangeCache = useRangeCache;
-
-      // 🔥 FIX 2: SAFETY CHECK
-      if (useRangeCache && labController.labAllotmentsR.isEmpty) {
-        throw Exception("Range data not loaded before PDF generation");
-      }
+      print("========== PDF DEBUG ==========");
+      labController.labAllotmentsR.forEach((lab, list) {
+        print("$lab -> ${list.length}");
+      });
 
       /// DATE LIST
       List<DateTime> dates = [];
@@ -68,50 +59,37 @@ class RangeMatrixPdfGenerator {
         d = d.add(const Duration(days: 1));
       }
 
-      /// MATRIX BUILD
+      /// MATRIX
       final matrix = <String, Map<String, List<Map<String, dynamic>>>>{};
 
       for (final date in dates) {
         final dateStr = df.format(date);
         matrix[dateStr] = {};
 
-        // ❌ REMOVED fallback API call
+        print("\n📅 $dateStr");
 
         for (final lab in labOrder) {
-
-          // 🔥 FIX 3: ALWAYS USE RANGE DATA
           final allAllotments =
               (labController.labAllotmentsR[lab] ?? [])
                   .cast<Map<String, dynamic>>();
 
-          // 🔥 FIX 4: FILTER BY DATE ONLY
           final filtered = allAllotments.where((e) {
-            try {
-              final entryDate = df.parse(e['date'] ?? '');
-              return df.format(entryDate) == dateStr;
-            } catch (_) {
-              return false;
-            }
+            return (e['date'] ?? '').toString().trim() == dateStr;
           }).toList();
+
+          print("LAB $lab -> ${filtered.length}");
 
           final grouped = <String, Map<String, dynamic>>{};
 
           for (var e in filtered) {
             if (!matchFilter(e["external"], filter)) continue;
 
-            final subj = (e["subject_name"] ?? "").toString().toLowerCase();
-            final cls = (e["class_name"] ?? "").toString().toLowerCase();
-
-            if (subj == "free" || cls == "free") continue;
-
-            // 🔥 FIX 5: UNIQUE KEY WITH DATE
             final key =
                 "${e['class_name']}_${e['subject_name']}_${e['external']}_${e['date']}";
 
-            final hours = _parseHours(e["hours"] ?? e["hours_allotted"]);
+            final hours = _parseHours(e["hours"]);
             if (hours.isEmpty) continue;
 
-            // 🔥 FIX 6: NO MERGE BUG
             grouped[key] = {
               "class_name": e["class_name"],
               "subject_name": e["subject_name"],
@@ -124,7 +102,7 @@ class RangeMatrixPdfGenerator {
         }
       }
 
-      // ================= PDF DESIGN (UNCHANGED) =================
+      /// ================= PDF =================
 
       const blue = PdfColor.fromInt(0xFFADD8E6);
       const green = PdfColor.fromInt(0xFF90EE90);
@@ -141,13 +119,17 @@ class RangeMatrixPdfGenerator {
           pageFormat: PdfPageFormat.a4.landscape,
           margin: const pw.EdgeInsets.all(10),
           build: (_) => [
+
             pw.Text("LAB ALLOTMENT",
                 style: pw.TextStyle(
-                    fontSize: 20, fontWeight: pw.FontWeight.bold)),
+                    font: ttf,
+                    fontSize: 20,
+                    fontWeight: pw.FontWeight.bold)),
 
             pw.SizedBox(height: 10),
 
-            pw.Text("From: ${df.format(startDate)}  To: ${df.format(endDate)}"),
+            pw.Text("From: ${df.format(startDate)}  To: ${df.format(endDate)}",
+                style: pw.TextStyle(font: ttf)),
 
             pw.SizedBox(height: 10),
 
@@ -158,14 +140,15 @@ class RangeMatrixPdfGenerator {
                 height: 30,
                 alignment: pw.Alignment.center,
                 decoration: border,
-                child: pw.Text("DATE"),
+                child: pw.Text("DATE", style: pw.TextStyle(font: ttf)),
               ),
               ...labOrder.map((lab) => pw.Container(
                     width: labColWidth,
                     height: 30,
                     alignment: pw.Alignment.center,
                     decoration: border,
-                    child: pw.Text(displayName[lab] ?? lab),
+                    child: pw.Text(displayName[lab] ?? lab,
+                        style: pw.TextStyle(font: ttf)),
                   )),
             ]),
 
@@ -173,6 +156,7 @@ class RangeMatrixPdfGenerator {
 
             /// ROWS
             ...matrix.entries.map((dateEntry) {
+
               final labBlocks = <String, List<Map<String, dynamic>>>{};
               int maxBlocks = 1;
 
@@ -188,62 +172,61 @@ class RangeMatrixPdfGenerator {
               final rowHeight = maxBlocks * 22.0;
 
               return pw.Row(children: [
+
                 pw.Container(
                   width: dateColWidth,
                   height: rowHeight < 90 ? 90 : rowHeight,
                   alignment: pw.Alignment.center,
                   decoration: border,
-                  child: pw.Text(dateEntry.key),
+                  child: pw.Text(dateEntry.key,
+                      style: pw.TextStyle(font: ttf)),
                 ),
 
                 ...labOrder.map((lab) {
+
                   final blocks = labBlocks[lab]!;
-
-                  List<pw.Widget> cells = [];
-
-                  for (var b in blocks) {
-                    final entries = b["entries"];
-                    final hours = (b["hours"] as List).cast<int>();
-
-                    final isFree = entries.isEmpty;
-
-                    final color = isFree
-                        ? orange
-                        : ((entries.first["external"] ?? "")
-                                .toString()
-                                .toLowerCase()
-                                .contains("external"))
-                            ? green
-                            : blue;
-
-                    String text;
-
-                    if (isFree) {
-                      text = "FREE\nHrs: ${formatBlock(hours)}";
-                    } else {
-                      text = entries
-                              .map((e) =>
-                                  "${e['class_name']}\n${e['subject_name']}")
-                              .join("\n\n") +
-                          "\nHrs: ${formatBlock(hours)}";
-                    }
-
-                    cells.add(
-                      pw.Container(
-                        padding: const pw.EdgeInsets.all(3),
-                        margin: const pw.EdgeInsets.only(bottom: 3),
-                        color: color,
-                        child: pw.Text(text, textAlign: pw.TextAlign.center),
-                      ),
-                    );
-                  }
 
                   return pw.Container(
                     width: labColWidth,
                     height: rowHeight < 90 ? 90 : rowHeight,
                     padding: const pw.EdgeInsets.all(3),
                     decoration: border,
-                    child: pw.Column(children: cells),
+                    child: pw.Column(
+                      children: blocks.map((b) {
+
+                        final entries = b["entries"];
+                        final hours = (b["hours"] as List).cast<int>();
+                        final isFree = entries.isEmpty;
+
+                        final color = isFree
+                            ? orange
+                            : ((entries.first["external"] ?? "")
+                                    .toString()
+                                    .toLowerCase()
+                                    .contains("external"))
+                                ? green
+                                : blue;
+
+                        final text = isFree
+                            ? "FREE\nHrs: ${formatBlock(hours)}"
+                            : entries
+                                    .map((e) =>
+                                        "${e['class_name']}\n${e['subject_name']}")
+                                    .join("\n\n") +
+                                "\nHrs: ${formatBlock(hours)}";
+
+                        print("BLOCK: $text");
+
+                        return pw.Container(
+                          padding: const pw.EdgeInsets.all(3),
+                          margin: const pw.EdgeInsets.only(bottom: 3),
+                          color: color,
+                          child: pw.Text(text,
+                              textAlign: pw.TextAlign.center,
+                              style: pw.TextStyle(font: ttf)),
+                        );
+                      }).toList(),
+                    ),
                   );
                 }),
               ]);
@@ -258,61 +241,24 @@ class RangeMatrixPdfGenerator {
 
       await file.writeAsBytes(await pdf.save());
       await OpenFile.open(file.path);
+
     } catch (e) {
-      print("PDF ERROR: $e");
+      print("❌ PDF ERROR: $e");
     }
   }
 
-  // ================= UTIL FUNCTIONS (UNCHANGED) =================
+  // ================= UTIL =================
 
   static List<int> _parseHours(dynamic value) {
     if (value == null) return [];
-
-    if (value is List) {
-      return value.map((v) => _parseHourValue(v)).where((h) => h > 0).toList();
-    }
-
-    var str = value.toString();
-    if (str.trim().isEmpty) return [];
-
-    str = str.replaceAll(RegExp(r"[\[\]]"), "");
-
-    final hours = <int>{};
-    final tokens = str.split(RegExp(r"[\s,]+"));
-
-    for (var token in tokens) {
-      token = token.trim();
-      if (token.isEmpty) continue;
-
-      final rangeMatch =
-          RegExp(r"^(\d+|lb)\s*[-–—]\s*(\d+|lb)", caseSensitive: false)
-              .firstMatch(token);
-
-      if (rangeMatch != null) {
-        final start = _parseHourValue(rangeMatch.group(1));
-        final end = _parseHourValue(rangeMatch.group(2));
-        if (start > 0 && end > 0) {
-          final step = start <= end ? 1 : -1;
-          for (var i = start; i != end; i += step) {
-            hours.add(i);
-          }
-          hours.add(end);
-          continue;
-        }
-      }
-
-      final h = _parseHourValue(token);
-      if (h > 0) hours.add(h);
-    }
-
-    return hours.toList();
-  }
-
-  static int _parseHourValue(dynamic value) {
-    final s = value?.toString().trim().toLowerCase() ?? "";
-    if (s.isEmpty) return 0;
-    if (s == "lb") return 8;
-    return int.tryParse(s) ?? 0;
+    return value
+        .toString()
+        .split(',')
+        .map((e) => e.trim().toLowerCase() == 'lb'
+            ? 8
+            : int.tryParse(e.trim()) ?? 0)
+        .where((e) => e > 0)
+        .toList();
   }
 
   static List<int> _normalizeHours(List<int> hours) {
@@ -325,30 +271,29 @@ class RangeMatrixPdfGenerator {
     if (a.length != b.length) return false;
 
     List<String> ak = a
-        .map((e) => "${e['class_name']}_${e['subject_name']}_${e['external']}")
+        .map((e) =>
+            "${e['class_name']}_${e['subject_name']}_${e['external']}_${e['hours']}")
         .toList()
       ..sort();
 
     List<String> bk = b
-        .map((e) => "${e['class_name']}_${e['subject_name']}_${e['external']}")
+        .map((e) =>
+            "${e['class_name']}_${e['subject_name']}_${e['external']}_${e['hours']}")
         .toList()
       ..sort();
 
-    for (int i = 0; i < ak.length; i++) {
-      if (ak[i] != bk[i]) return false;
-    }
-    return true;
+    return ak.toString() == bk.toString();
   }
 
   static List<Map<String, dynamic>> _buildBlocksForLab(
       List<Map<String, dynamic>> todays) {
+
     Map<int, List<Map<String, dynamic>>> hourMap = {
       for (var h in hourOrder) h: []
     };
 
     for (var e in todays) {
-      final hrs = (e['hours'] as List).cast<int>();
-      for (var h in hrs) {
+      for (var h in e['hours']) {
         hourMap[h]!.add(e);
       }
     }
@@ -386,21 +331,6 @@ class RangeMatrixPdfGenerator {
       });
     }
 
-    List<Map<String, dynamic>> merged = [];
-    for (var b in blocks) {
-      final entries = b['entries'];
-      if (merged.isEmpty) {
-        merged.add(b);
-        continue;
-      }
-      final last = merged.last;
-      if (entries.isEmpty && (last['entries'] as List).isEmpty) {
-        (last['hours'] as List).addAll(b['hours']);
-      } else {
-        merged.add(b);
-      }
-    }
-
-    return merged;
+    return blocks;
   }
 }

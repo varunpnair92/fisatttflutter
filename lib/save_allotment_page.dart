@@ -392,7 +392,7 @@ class SaveAllotmentPage extends StatelessWidget {
                         endDate: end,
                         labController: labController,
                         filter: labController.pdfFilter.value,
-                        useRangeCache: true,
+                       // useRangeCache: true,
                       );
                     },
                     child: const Text("Date PDF"),
