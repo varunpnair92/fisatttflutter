@@ -250,13 +250,15 @@ class LabAllotmentPage extends StatelessWidget {
                               "allot": "continue",
                             };
 
-                            await labController.saveData(
+                            bool success = await labController.saveData(
                               formKey: GlobalKey<FormState>(),
                               startDateController:
                                   TextEditingController(text: dateStr),
                               endDateController:
                                   TextEditingController(text: dateStr),
                             );
+
+                            if (!success) return;
 
                             // ===================================================
                             // 2️⃣  FREE OLD LAB

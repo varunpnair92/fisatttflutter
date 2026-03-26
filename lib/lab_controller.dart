@@ -157,14 +157,14 @@ class LabController extends GetxController {
   //   }
   // }
 
-  Future<void> saveData({
+  Future<bool> saveData({
     required GlobalKey<FormState> formKey,
     required TextEditingController startDateController,
     required TextEditingController endDateController,
   }) async {
     if (!formData.containsKey("allot")) {
       safeSnackbar("Error", "Please select Continue or Repeat");
-      return;
+      return false;
     }
 
     // =====================================================
@@ -200,7 +200,7 @@ class LabController extends GetxController {
             body: jsonEncode(formData.value),
           );
 
-          if (saveRes.statusCode == 200 || saveRes.statusCode == 201) {
+            if (saveRes.statusCode == 200 || saveRes.statusCode == 201) {
             safeSnackbar("Saved", "Allotment Saved");
             getLabExternal();
             clearAll(
@@ -208,20 +208,25 @@ class LabController extends GetxController {
               startDateController: startDateController,
               endDateController: endDateController,
             );
+            return true;
           }
-          return;
+          return false;
         }
 
         // ⚠ CONFLICT FOUND
         final conflicts = jsonDecode(conflictRes.body)["conflicts"];
+        bool conflictResolved = false;
 
-        Get.defaultDialog(
+        await Get.defaultDialog(
           title: "Conflicts Found",
           middleText: conflicts
               .map((c) => "${c['lab']} → ${c['date']} → Hours ${c['hours']}")
               .join("\n"),
           textCancel: "Cancel",
           textConfirm: "Continue",
+          onCancel: () {
+            Get.back();
+          },
           onConfirm: () async {
             Get.back();
             //formData["lab_names"] = jsonEncode(selectedLabs.toList());
@@ -244,15 +249,15 @@ class LabController extends GetxController {
                 startDateController: startDateController,
                 endDateController: endDateController,
               );
+              conflictResolved = true;
             }
           },
         );
+        return conflictResolved;
       } catch (e) {
         safeSnackbar("Error", "Exception: $e");
-        
+        return false;
       }
-
-      return; // stop here for multi-lab
     }
 
     // =====================================================
@@ -277,11 +282,13 @@ class LabController extends GetxController {
           startDateController: startDateController,
           endDateController: endDateController,
         );
+        return true;
       } else if (response.statusCode == 400) {
         final responseBody = jsonDecode(response.body);
         final conflictMessage = responseBody["error"] ?? "Unknown conflict";
+        bool conflictResolved = false;
 
-        Get.defaultDialog(
+        await Get.defaultDialog(
           title: "Conflict Detected",
           middleText: conflictMessage,
           textCancel: "Cancel",
@@ -297,7 +304,7 @@ class LabController extends GetxController {
             );
           },
           onConfirm: () async {
-            Get.back();
+            Get.back(); // Dismiss the dialog
             formData["allot"] = "continue";
 
             final continueResponse = await http.post(
@@ -315,14 +322,18 @@ class LabController extends GetxController {
                 startDateController: startDateController,
                 endDateController: endDateController,
               );
+              conflictResolved = true;
             }
           },
         );
+        return conflictResolved;
       } else {
         safeSnackbar("Error", "Failed to save data.");
+        return false;
       }
     } catch (e) {
       safeSnackbar("Error", "Exception while saving data: $e");
+      return false;
     }
   }
 
