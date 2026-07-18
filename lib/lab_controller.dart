@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'lab_external.dart';
+import 'package:fisat_timetable/api_controller.dart';
 
 class LabController extends GetxController {
   var selectedDate = DateTime.now().obs;
@@ -17,7 +18,6 @@ class LabController extends GetxController {
   var apiData = <Labexternal>[].obs;
   var pdfFilter = 'both'.obs;
   var selectedLabs = <String>[].obs;
-  
 
   // ✅ allot is NOT set here → only controlled by UI
   var formData = <String, dynamic>{
@@ -193,16 +193,18 @@ class LabController extends GetxController {
           //formData["lab_names"] = jsonEncode(selectedLabs.toList());
           formData["lab_names"] = selectedLabs.toList();
 
-
           final saveRes = await http.post(
             Uri.parse(saveMultiUrl),
             headers: {"Content-Type": "application/json"},
             body: jsonEncode(formData.value),
           );
 
-            if (saveRes.statusCode == 200 || saveRes.statusCode == 201) {
+          if (saveRes.statusCode == 200 || saveRes.statusCode == 201) {
             safeSnackbar("Saved", "Allotment Saved");
             getLabExternal();
+            try {
+              Get.find<ExamController>().getData();
+            } catch (e) {}
             clearAll(
               formKey: formKey,
               startDateController: startDateController,
@@ -225,10 +227,10 @@ class LabController extends GetxController {
           textCancel: "Cancel",
           textConfirm: "Continue",
           onCancel: () {
-            Get.back();
+            Navigator.of(Get.overlayContext!).pop();
           },
           onConfirm: () async {
-            Get.back();
+            Navigator.of(Get.overlayContext!).pop();
             //formData["lab_names"] = jsonEncode(selectedLabs.toList());
             formData["lab_names"] = selectedLabs.toList();
 
@@ -244,6 +246,9 @@ class LabController extends GetxController {
                 forceSaveRes.statusCode == 201) {
               safeSnackbar("Saved", "Allotment Saved with Conflict");
               getLabExternal();
+              try {
+                Get.find<ExamController>().getData();
+              } catch (e) {}
               clearAll(
                 formKey: formKey,
                 startDateController: startDateController,
@@ -264,6 +269,10 @@ class LabController extends GetxController {
     // 🔵 ORIGINAL SINGLE LAB LOGIC (UNCHANGED)
     // =====================================================
 
+    if (selectedLabs.length == 1) {
+      formData["lab_name"] = selectedLabs.first;
+    }
+
     var url = "${Sharedvariable().ip}/lab/laballot";
     var continueUrl = "${Sharedvariable().ip}/lab/laballot_continue";
 
@@ -277,6 +286,9 @@ class LabController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         safeSnackbar("Saved", "Allotment Saved");
         getLabExternal();
+        try {
+          Get.find<ExamController>().getData();
+        } catch (e) {}
         clearAll(
           formKey: formKey,
           startDateController: startDateController,
@@ -295,7 +307,7 @@ class LabController extends GetxController {
           textConfirm: "Continue",
           barrierDismissible: false,
           onCancel: () {
-            Get.back();
+            Navigator.of(Get.overlayContext!).pop();
             safeSnackbar("Cancelled", "Allotment process cancelled");
             clearAll(
               formKey: formKey,
@@ -304,7 +316,7 @@ class LabController extends GetxController {
             );
           },
           onConfirm: () async {
-            Get.back(); // Dismiss the dialog
+            Navigator.of(Get.overlayContext!).pop(); // Dismiss the dialog
             formData["allot"] = "continue";
 
             final continueResponse = await http.post(
@@ -316,6 +328,9 @@ class LabController extends GetxController {
             if (continueResponse.statusCode == 200 ||
                 continueResponse.statusCode == 201) {
               getLabExternal();
+              try {
+                Get.find<ExamController>().getData();
+              } catch (e) {}
               safeSnackbar("Saved", "Allotment Saved with Conflict");
               clearAll(
                 formKey: formKey,

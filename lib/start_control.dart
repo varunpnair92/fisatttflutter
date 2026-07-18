@@ -15,10 +15,8 @@ class StartupController extends GetxController {
     String email = prefs.getString('user_email') ?? "";
 
     if (isSignedIn && email.isNotEmpty) {
-      
       await GoogleSignInController().checkLoginAndNavigate();
     } else {
-      
       Get.offAllNamed("/google");
     }
   }

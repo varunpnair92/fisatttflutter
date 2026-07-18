@@ -72,10 +72,7 @@ class _ShowAllotmentPageState extends State<ShowAllotmentPage> {
   // Copy single allotment
   // ---------------------------
   void _copySingle(Labexternal a) {
-    String hours = a.hoursAllotted
-        .split(',')
-        .map((h) => h.trim() == '8' ? 'LB' : h.trim())
-        .join(', ');
+    String hours = a.hoursAllotted.split(',').map((h) => h.trim()).join(', ');
 
     String text = """
 Date: ${a.startDate}
@@ -101,10 +98,7 @@ Hours: $hours
         .toList();
 
     String combined = selected.map((a) {
-      String hours = a.hoursAllotted
-          .split(',')
-          .map((h) => h.trim() == '8' ? 'LB' : h.trim())
-          .join(', ');
+      String hours = a.hoursAllotted.split(',').map((h) => h.trim()).join(', ');
 
       return """
 Date: ${a.startDate}
@@ -135,15 +129,16 @@ Hours: $hours
       textCancel: "No",
       confirmTextColor: Colors.white,
       buttonColor: Colors.red,
+      onCancel: () {
+        Navigator.of(Get.overlayContext!).pop();
+      },
       onConfirm: () async {
         // -------- DELETE --------
         bool deleted = await examController.deleteAllotment(a.id);
 
         // -------- FORMAT HOURS --------
-        String hours = a.hoursAllotted
-            .split(',')
-            .map((h) => h.trim() == '8' ? 'LB' : h.trim())
-            .join(', ');
+        String hours =
+            a.hoursAllotted.split(',').map((h) => h.trim()).join(', ');
 
         // -------- TELEGRAM MESSAGE --------
         String message = """
@@ -162,7 +157,7 @@ Hours: $hours
           body: jsonEncode({"message": message}),
         );
 
-        Get.back();
+        Navigator.of(Get.overlayContext!).pop();
         refreshPage();
 
         if (!mounted) return;
@@ -347,7 +342,7 @@ Hours: $hours
                   Text("Class: ${allot.className}"),
                   Text("Subject: ${allot.subjectName}"),
                   Text(
-                      "Hours: ${allot.hoursAllotted.split(',').map((h) => h.trim() == '8' ? 'LB' : h.trim()).join(',')}"),
+                      "Hours: ${allot.hoursAllotted.split(',').map((h) => h.trim()).join(',')}"),
                 ],
               ),
               trailing: IconButton(

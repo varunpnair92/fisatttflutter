@@ -34,7 +34,7 @@ class Labexternal {
   });
 
   factory Labexternal.fromJson(Map<String, dynamic> json) => Labexternal(
-        id:json["id"],
+        id: json["id"],
         labName: json["lab_name"],
         dayAllotted: json["day_allotted"],
         hoursAllotted: json["hours_allotted"],
@@ -48,7 +48,7 @@ class Labexternal {
   //get id => null;
 
   Map<String, dynamic> toJson() => {
-        "id":id,
+        "id": id,
         "lab_name": labName,
         "day_allotted": dayAllotted,
         "hours_allotted": hoursAllotted,

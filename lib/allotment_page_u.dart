@@ -20,7 +20,7 @@ class AllotmentPageU extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-           // SaveAllotmentPage(),
+            // SaveAllotmentPage(),
             ShowAllotmentPageU(),
           ],
         ),

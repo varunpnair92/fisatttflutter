@@ -41,7 +41,6 @@ class ExamController extends GetxController {
           // print("Processing: $data"); // ✅ Debugging each entry
           return Labexternal.fromJson(data);
         }).toList();
-        
       } else {
         //print('Failed to load data. Status code: ${response.statusCode}');
         return null;
@@ -50,7 +49,6 @@ class ExamController extends GetxController {
       //print('Exception: $e');
       return null;
     }
-    
   }
 
   Future<bool> deleteAllotment(int id) async {

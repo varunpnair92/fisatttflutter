@@ -31,7 +31,6 @@ class DailyGridPdfGenerator {
     "H2",
     "H3",
     "H4",
-    "LB",
     "H5",
     "H6",
     "H7"
@@ -42,10 +41,9 @@ class DailyGridPdfGenerator {
     "H2": "2",
     "H3": "3",
     "H4": "4",
-    "LB": "8",
     "H5": "5",
     "H6": "6",
-    "H7": "7",
+    "H7": "1.30-3.30",
   };
 
   static Future<void> generate({
@@ -195,7 +193,7 @@ class DailyGridPdfGenerator {
     required pw.TextStyle headerStyle,
     required pw.TextStyle cellStyle,
   }) {
-    List<String> hourOrder = ["1", "2", "3", "4", "8", "5", "6", "7"];
+    List<String> hourOrder = ["1", "2", "3", "4", "5", "6", "1.30-3.30"];
     List<pw.Widget> cells = [];
 
     cells.add(

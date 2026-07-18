@@ -22,7 +22,7 @@ class _LabCalendarState extends State<LabCalendar> {
   DateTime _clampDate(DateTime date) {
     // First remove time portion (set to midnight)
     final normalized = DateTime(date.year, date.month, date.day);
-    
+
     // Then clamp to our range
     if (normalized.isBefore(firstDay)) return firstDay;
     if (normalized.isAfter(lastDay)) return lastDay;
@@ -34,24 +34,23 @@ class _LabCalendarState extends State<LabCalendar> {
     return Scaffold(
       appBar: AppBar(title: const Text('Lab Calendar')),
       body: TableCalendar(
-  firstDay: DateTime(2025, 1, 1), 
-  lastDay: DateTime(2025, 12, 31), 
-  focusedDay: DateTime.now().isBefore(DateTime(2025, 1, 1)) 
-      ? DateTime(2025, 1, 1)
-      : (DateTime.now().isAfter(DateTime(2025, 12, 31))
-          ? DateTime(2025, 12, 31)
-          : DateTime.now()), 
-  calendarFormat: CalendarFormat.month,
-  onDaySelected: (selectedDay, focusedDay) {
-    // Ensure focusedDay is updated within bounds
-    setState(() {
-      focusedDay = selectedDay.isAfter(DateTime(2025, 12, 31))
-          ? DateTime(2025, 12, 31)
-          : selectedDay;
-    });
-  },
-)
-,
+        firstDay: DateTime(2025, 1, 1),
+        lastDay: DateTime(2025, 12, 31),
+        focusedDay: DateTime.now().isBefore(DateTime(2025, 1, 1))
+            ? DateTime(2025, 1, 1)
+            : (DateTime.now().isAfter(DateTime(2025, 12, 31))
+                ? DateTime(2025, 12, 31)
+                : DateTime.now()),
+        calendarFormat: CalendarFormat.month,
+        onDaySelected: (selectedDay, focusedDay) {
+          // Ensure focusedDay is updated within bounds
+          setState(() {
+            focusedDay = selectedDay.isAfter(DateTime(2025, 12, 31))
+                ? DateTime(2025, 12, 31)
+                : selectedDay;
+          });
+        },
+      ),
     );
   }
 }

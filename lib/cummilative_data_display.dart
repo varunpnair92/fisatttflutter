@@ -32,7 +32,6 @@ class _CumulativePageState extends State<CumulativePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("External Summary"),
-
         actions: [
           /// COPY BUTTON
           IconButton(
@@ -47,11 +46,9 @@ class _CumulativePageState extends State<CumulativePage> {
           ),
         ],
       ),
-
       body: FutureBuilder(
         future: labController.fetchCumulative(widget.start, widget.end),
         builder: (context, AsyncSnapshot<List<CumulativeData>> snap) {
-
           if (!snap.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -82,11 +79,9 @@ class _CumulativePageState extends State<CumulativePage> {
                     style: const TextStyle(height: 1.4),
                   ),
                   isThreeLine: true,
-
                   trailing: isSelected
                       ? const Icon(Icons.check_circle, color: Colors.blue)
                       : const Icon(Icons.circle_outlined),
-
                   onTap: () {
                     setState(() {
                       if (isSelected) {
@@ -112,11 +107,9 @@ class _CumulativePageState extends State<CumulativePage> {
     for (var index in selected) {
       final d = loaded[index];
 
-      buffer.writeln(
-          "Class: ${d.className}\n"
+      buffer.writeln("Class: ${d.className}\n"
           "Subject: ${d.subjectName}\n"
-          "Dates: ${d.dates}\n"
-      );
+          "Dates: ${d.dates}\n");
     }
 
     await Clipboard.setData(ClipboardData(text: buffer.toString()));
@@ -126,18 +119,15 @@ class _CumulativePageState extends State<CumulativePage> {
 
   /// SEND TELEGRAM
   Future<void> sendTelegram() async {
-
     final buffer = StringBuffer();
 
     for (var index in selected) {
       final d = loaded[index];
 
-      buffer.writeln(
-          "\n"
+      buffer.writeln("\n"
           "🎓 Class: ${d.className}\n"
           "📘 Subject: ${d.subjectName}\n"
-          "📅 Dates: ${d.dates}\n"
-      );
+          "📅 Dates: ${d.dates}\n");
     }
 
     final url = "${Sharedvariable().ip}/lab/send_message";

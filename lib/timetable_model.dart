@@ -26,26 +26,26 @@ class Keemmodel {
   });
 
   factory Keemmodel.fromJson(Map<String, dynamic> json) => Keemmodel(
-    l7: List<L1>.from(json["L7"].map((x) => L1.fromJson(x))),
-    l6: List<L1>.from(json["L6"].map((x) => L1.fromJson(x))),
-    l1: List<L1>.from(json["L1"].map((x) => L1.fromJson(x))),
-    l2: List<L1>.from(json["L2"].map((x) => L1.fromJson(x))),
-    l3: List<L1>.from(json["L3"].map((x) => L1.fromJson(x))),
-    l4: List<L1>.from(json["L4"].map((x) => L1.fromJson(x))),
-    pgLab: List<L1>.from(json["PG LAB"].map((x) => L1.fromJson(x))),
-    l5: List<L1>.from(json["L5"].map((x) => L1.fromJson(x))),
-  );
+        l7: List<L1>.from(json["L7"].map((x) => L1.fromJson(x))),
+        l6: List<L1>.from(json["L6"].map((x) => L1.fromJson(x))),
+        l1: List<L1>.from(json["L1"].map((x) => L1.fromJson(x))),
+        l2: List<L1>.from(json["L2"].map((x) => L1.fromJson(x))),
+        l3: List<L1>.from(json["L3"].map((x) => L1.fromJson(x))),
+        l4: List<L1>.from(json["L4"].map((x) => L1.fromJson(x))),
+        pgLab: List<L1>.from(json["PG LAB"].map((x) => L1.fromJson(x))),
+        l5: List<L1>.from(json["L5"].map((x) => L1.fromJson(x))),
+      );
 
   Map<String, dynamic> toJson() => {
-    "L7": List<dynamic>.from(l7.map((x) => x.toJson())),
-    "L6": List<dynamic>.from(l6.map((x) => x.toJson())),
-    "L1": List<dynamic>.from(l1.map((x) => x.toJson())),
-    "L2": List<dynamic>.from(l2.map((x) => x.toJson())),
-    "L3": List<dynamic>.from(l3.map((x) => x.toJson())),
-    "L4": List<dynamic>.from(l4.map((x) => x.toJson())),
-    "PG LAB": List<dynamic>.from(pgLab.map((x) => x.toJson())),
-    "L5": List<dynamic>.from(l5.map((x) => x.toJson())),
-  };
+        "L7": List<dynamic>.from(l7.map((x) => x.toJson())),
+        "L6": List<dynamic>.from(l6.map((x) => x.toJson())),
+        "L1": List<dynamic>.from(l1.map((x) => x.toJson())),
+        "L2": List<dynamic>.from(l2.map((x) => x.toJson())),
+        "L3": List<dynamic>.from(l3.map((x) => x.toJson())),
+        "L4": List<dynamic>.from(l4.map((x) => x.toJson())),
+        "PG LAB": List<dynamic>.from(pgLab.map((x) => x.toJson())),
+        "L5": List<dynamic>.from(l5.map((x) => x.toJson())),
+      };
 }
 
 class L1 {
@@ -66,20 +66,20 @@ class L1 {
   });
 
   factory L1.fromJson(Map<String, dynamic> json) => L1(
-    className: json["class_name"],
-    subjectName: json["subject_name"],
-    day: json["day"],
-    hours: json["hours"],
-    startDate: json["start_date"],
-    endDate: json["end_date"],
-  );
+        className: json["class_name"],
+        subjectName: json["subject_name"],
+        day: json["day"],
+        hours: json["hours"],
+        startDate: json["start_date"],
+        endDate: json["end_date"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "class_name": className,
-    "subject_name": subjectName,
-    "day": day,
-    "hours": hours,
-    "start_date": startDate,
-    "end_date": endDate,
-  };
+        "class_name": className,
+        "subject_name": subjectName,
+        "day": day,
+        "hours": hours,
+        "start_date": startDate,
+        "end_date": endDate,
+      };
 }

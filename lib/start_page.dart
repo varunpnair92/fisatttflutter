@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 class StartupPage extends StatelessWidget {
   final controller = Get.put(StartupController());
 
-   StartupPage({super.key});
+  StartupPage({super.key});
 
   @override
   Widget build(BuildContext context) {

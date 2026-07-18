@@ -29,7 +29,7 @@ class SaveAllotmentPage extends StatelessWidget {
     'PG'
   ];
 
-  final List<String> hoursList = ['1', '2', '3', '4', 'LB', '5', '6', '7'];
+  final List<String> hoursList = ['1', '2', '3', '4', '5', '6', '1.30-3.30'];
 
   SaveAllotmentPage({super.key});
 
@@ -266,10 +266,8 @@ class SaveAllotmentPage extends StatelessWidget {
                         final to = hoursList.indexOf(toHour);
 
                         if (from <= to) {
-                          final selectedHours = hoursList
-                              .sublist(from, to + 1)
-                              .map((h) => h == "LB" ? "8" : h)
-                              .toList();
+                          final selectedHours =
+                              hoursList.sublist(from, to + 1).toList();
 
                           labController.formData['hours_allotted'] =
                               selectedHours.join(',');
@@ -302,7 +300,8 @@ class SaveAllotmentPage extends StatelessWidget {
                   onPressed: () async {
                     if (_startDateController.text.isEmpty ||
                         _endDateController.text.isEmpty) {
-                      labController.safeSnackbar("Error", "Select Start & End Dates");
+                      labController.safeSnackbar(
+                          "Error", "Select Start & End Dates");
                       return;
                     }
 
@@ -324,7 +323,8 @@ class SaveAllotmentPage extends StatelessWidget {
                   onPressed: () {
                     if (_startDateController.text.isEmpty ||
                         _endDateController.text.isEmpty) {
-                      labController.safeSnackbar("Error", "Select both start & end dates");
+                      labController.safeSnackbar(
+                          "Error", "Select both start & end dates");
                       return;
                     }
 
@@ -363,7 +363,8 @@ class SaveAllotmentPage extends StatelessWidget {
                           ),
                         );
                       } else {
-                        labController.safeSnackbar("Error", "Select both start & end dates");
+                        labController.safeSnackbar(
+                            "Error", "Select both start & end dates");
                       }
                     },
                     child: const Text('GR'),
@@ -372,7 +373,8 @@ class SaveAllotmentPage extends StatelessWidget {
                     onPressed: () async {
                       if (_startDateController.text.isEmpty ||
                           _endDateController.text.isEmpty) {
-                        labController.safeSnackbar("Error", "Select Start & End Dates");
+                        labController.safeSnackbar(
+                            "Error", "Select Start & End Dates");
                         return;
                       }
 
@@ -392,7 +394,7 @@ class SaveAllotmentPage extends StatelessWidget {
                         endDate: end,
                         labController: labController,
                         filter: labController.pdfFilter.value,
-                       // useRangeCache: true,
+                        // useRangeCache: true,
                       );
                     },
                     child: const Text("DwPDF"),
@@ -400,7 +402,8 @@ class SaveAllotmentPage extends StatelessWidget {
                   ElevatedButton(
                     onPressed: () async {
                       if (_startDateController.text.isEmpty) {
-                        labController.safeSnackbar("Error", "Select Start Date first.");
+                        labController.safeSnackbar(
+                            "Error", "Select Start Date first.");
                         return;
                       }
 

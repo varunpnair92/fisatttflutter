@@ -11,7 +11,7 @@ import 'package:intl/intl.dart';
 class LabAllotmentPage extends StatelessWidget {
   final LabController labController = Get.put(LabController());
 
-   LabAllotmentPage({super.key});
+  LabAllotmentPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +70,7 @@ class LabAllotmentPage extends StatelessWidget {
       'PG LAB'
     ];
 
-    final hours = ['H1', 'H2', 'H3', 'H4', 'LB', 'H5', 'H6', 'H7'];
+    final hours = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7'];
 
     final dayNames = [
       'Monday',
@@ -131,19 +131,21 @@ class LabAllotmentPage extends StatelessWidget {
                     // ====================================================
                     //      MERGE HOURS (CUSTOM ORDER LOGIC)
                     // ====================================================
-                    final Map<String, List<int>> grouped = {};
+                    final Map<String, List<String>> grouped = {};
 
                     for (var e in dayEntries) {
                       final key =
                           "${e['class_name']}|${e['subject_name']}|${e['external']}";
 
-                      int hr = int.tryParse(e['hours'] ?? '') ?? -1;
+                      String hr = (e['hours'] ?? '').trim();
 
                       grouped.putIfAbsent(key, () => []);
-                      grouped[key]!.add(hr);
+                      if (hr.isNotEmpty) {
+                        grouped[key]!.add(hr);
+                      }
                     }
 
-                    final order = [1, 2, 3, 4, 8, 5, 6, 7];
+                    final order = ['1', '2', '3', '4', '5', '6', '1.30-3.30'];
 
                     final List<Map<String, dynamic>> mergedSlots = [];
 
@@ -153,7 +155,9 @@ class LabAllotmentPage extends StatelessWidget {
                       list.sort((a, b) =>
                           order.indexOf(a).compareTo(order.indexOf(b)));
 
-                      List<int> block = [list.first];
+                      if (list.isEmpty) return;
+
+                      List<String> block = [list.first];
 
                       for (int i = 1; i < list.length; i++) {
                         final prev = block.last;
@@ -171,7 +175,7 @@ class LabAllotmentPage extends StatelessWidget {
                             "class": parts[0],
                             "subject": parts[1],
                             "external": parts[2],
-                            "hours": List<int>.from(block),
+                            "hours": List<String>.from(block),
                           });
                           block = [curr];
                         }
@@ -181,7 +185,7 @@ class LabAllotmentPage extends StatelessWidget {
                         "class": parts[0],
                         "subject": parts[1],
                         "external": parts[2],
-                        "hours": List<int>.from(block),
+                        "hours": List<String>.from(block),
                       });
                     });
 
@@ -189,7 +193,7 @@ class LabAllotmentPage extends StatelessWidget {
                     return Row(
                       children: hours.map((hText) {
                         final mapped =
-                            hText == "LB" ? 8 : int.parse(hText.substring(1));
+                            hText == "H7" ? "1.30-3.30" : hText.substring(1);
 
                         final found = mergedSlots.firstWhere(
                           (s) => (s['hours'] as List).contains(mapped),
@@ -198,7 +202,7 @@ class LabAllotmentPage extends StatelessWidget {
 
                         if (found.isEmpty) return _cell("");
 
-                        final hrs = found['hours'] as List<int>;
+                        final hrs = found['hours'] as List<String>;
                         if (hrs.first != mapped) {
                           return const SizedBox(width: 0, height: 40);
                         }
@@ -230,16 +234,14 @@ class LabAllotmentPage extends StatelessWidget {
                             final className = found['class'];
                             final subject = found['subject'];
                             final external = found['external'];
-                            final hourText = hrs
-                                .map((h) => h == 8 ? 'LB' : h.toString())
-                                .join(',');
+                            final hourText = hrs.join(',');
 
                             // ===================================================
                             // 1️⃣  SAVE IN NEW LAB
                             // ===================================================
                             labController.formData.value = {
                               "lab_name": newLab,
-                              "moved_from": lab, 
+                              "moved_from": lab,
                               "hours_allotted": hrs.join(','),
                               "subject_name": subject,
                               "class_name": className,

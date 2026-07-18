@@ -8,23 +8,27 @@ import 'package:open_file/open_file.dart';
 import 'lab_controller.dart';
 
 class RangeMatrixFreeSlotsPdfGenerator {
-
   /// SAME LAB ORDER AS EXISTING PDF
   static final List<String> labOrder = [
-    'L1','L2','L3','L4','L5','L6','L7','L8','L9',
+    'L1',
+    'L2',
+    'L3',
+    'L4',
+    'L5',
+    'L6',
+    'L7',
+    'L8',
+    'L9',
     'PG LAB'
   ];
 
-  static final Map<String,String> displayName = {
-    "PG LAB":"PG"
-  };
+  static final Map<String, String> displayName = {"PG LAB": "PG"};
 
   static Future<void> generate({
     required DateTime startDate,
     required DateTime endDate,
     required LabController labController,
   }) async {
-
     final pdf = pw.Document();
     final df = DateFormat('dd-MM-yyyy');
 
@@ -32,7 +36,7 @@ class RangeMatrixFreeSlotsPdfGenerator {
     List<DateTime> dates = [];
     DateTime d = startDate;
 
-    while(!d.isAfter(endDate)) {
+    while (!d.isAfter(endDate)) {
       dates.add(d);
       d = d.add(const Duration(days: 1));
     }
@@ -49,7 +53,6 @@ class RangeMatrixFreeSlotsPdfGenerator {
 
     /// Convert API response into matrix format
     for (var day in freeData) {
-
       if (day == null) continue;
 
       final date = (day["date"] ?? "").toString().trim();
@@ -66,7 +69,6 @@ class RangeMatrixFreeSlotsPdfGenerator {
       final slots = day["free_slots"] ?? [];
 
       for (var slot in slots) {
-
         final lab = (slot["lab_name"] ?? "").toString().trim();
         final hours = (slot["hours_free"] ?? "").toString();
 
@@ -96,9 +98,7 @@ class RangeMatrixFreeSlotsPdfGenerator {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4.landscape,
         margin: const pw.EdgeInsets.all(10),
-
         build: (_) => [
-
           pw.Text(
             "FREE SLOTS REPORT",
             style: pw.TextStyle(
@@ -118,7 +118,6 @@ class RangeMatrixFreeSlotsPdfGenerator {
 
           /// HEADER ROW
           pw.Row(children: [
-
             pw.Container(
               width: dateColWidth,
               height: 30,
@@ -129,30 +128,25 @@ class RangeMatrixFreeSlotsPdfGenerator {
                 style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
               ),
             ),
-
-            ...labOrder.map((lab) =>
-              pw.Container(
-                width: labColWidth,
-                height: 30,
-                alignment: pw.Alignment.center,
-                decoration: border,
-                child: pw.Text(
-                  displayName[lab] ?? lab,
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                ),
-              )
-            ),
+            ...labOrder.map((lab) => pw.Container(
+                  width: labColWidth,
+                  height: 30,
+                  alignment: pw.Alignment.center,
+                  decoration: border,
+                  child: pw.Text(
+                    displayName[lab] ?? lab,
+                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                  ),
+                )),
           ]),
 
           pw.SizedBox(height: 3),
 
           /// DATA ROWS
           ...matrix.entries.map((entry) {
-
             final date = entry.key;
 
             return pw.Row(children: [
-
               pw.Container(
                 width: dateColWidth,
                 height: 70,
@@ -160,9 +154,7 @@ class RangeMatrixFreeSlotsPdfGenerator {
                 decoration: border,
                 child: pw.Text(date),
               ),
-
               ...labOrder.map((lab) {
-
                 final hours = entry.value[lab] ?? "";
 
                 return pw.Container(

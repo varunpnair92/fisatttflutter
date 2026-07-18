@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 class GoogleSignInPage extends StatelessWidget {
   final GoogleSignInController controller = Get.put(GoogleSignInController());
 
-   GoogleSignInPage({super.key});
+  GoogleSignInPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,8 @@ class GoogleSignInPage extends StatelessWidget {
                 icon: const Icon(Icons.login),
                 label: const Text("Sign in with Google"),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   textStyle: const TextStyle(fontSize: 18),
                 ),
                 onPressed: controller.signInWithGoogle,

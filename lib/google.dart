@@ -40,7 +40,6 @@ class GoogleSignInController extends GetxController {
       await prefs.setString('user_email', email);
       checkLoginAndNavigate();
     } catch (e) {
-     
       Get.snackbar("Error", "Google sign-in failed");
     } finally {
       isSigningIn.value = false;
@@ -50,14 +49,13 @@ class GoogleSignInController extends GetxController {
   Future<int> fetchPrivilege(String email) async {
     try {
       var ip = "${Sharedvariable().ip}/lab/user_data?email=$email";
-     
+
       final response = await http.get(Uri.parse(ip));
 
       final data = json.decode(response.body);
       //print("data  is    $data");
       return data['privilege'] ?? 0;
     } catch (e) {
-     
       return 0;
     }
   }
